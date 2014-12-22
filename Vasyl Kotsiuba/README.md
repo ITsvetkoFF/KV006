@@ -13,9 +13,6 @@ John Gruber, the developer of Markdown, has created a Perl program for convertin
 
 `NOTE:` **Markdown files also used the .MARKDOWN extension**
 
-1. First ordered list item
-2. Another item
-
- Extra:
+**Extra**:
 1. See more here [wiki](http://en.wikipedia.org/wiki/Markdown)
 2. More syntax [syntax](http://daringfireball.net/projects/markdown/syntax#link)
