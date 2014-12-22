@@ -14,3 +14,9 @@ John Gruber, the developer of Markdown, has created a Perl program for convertin
 NOTE: Markdown files also used the .MARKDOWN extension
 text using Markdown syntax
 ====
+//Heading
+// =======
+/*
+Heading
+=======
+*/
