@@ -18,3 +18,8 @@ text using Markdown syntax
 // =======
 *Heading \n
 =======*
+
+```javascript
+var s = "JavaScript syntax highlighting";
+alert(s);
+```
