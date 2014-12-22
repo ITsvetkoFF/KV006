@@ -16,7 +16,5 @@ text using Markdown syntax
 ====
 //Heading
 // =======
-/*
-Heading
-=======
-*/
+/*Heading
+=======*/
