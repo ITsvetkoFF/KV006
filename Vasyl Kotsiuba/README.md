@@ -1,5 +1,7 @@
 About .md files
+===============
 "History"
+---------
 John Gruber, with substantial contributions from Aaron Swartz, created the Markdown language in 2004 with the goal of enabling people "to write using an easy-to-read, easy-to-write plain text format, and optionally convert it to structurally valid XHTML (or HTML)”.
 
 "About"
