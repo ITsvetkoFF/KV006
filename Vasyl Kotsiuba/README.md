@@ -11,7 +11,19 @@ MD files are not only useful for HTML documentation systems, but also for source
 
 John Gruber, the developer of Markdown, has created a Perl program for converting Markdown to HTML. The program, called "Markdown," is available at the Daring Fireball website.
 
-~~NOTE:~~ **Markdown files also used the .MARKDOWN extension**
+`NOTE:` **Markdown files also used the .MARKDOWN extension**
+
+Shopping list:
+ 
+   * apples
+   * oranges
+   * pears
+ 
+ Numbered list:
+ 
+   1. apples
+   2. oranges
+   3. pears
 
 Extra:
 1. See more here [wiki](http://en.wikipedia.org/wiki/Markdown)
