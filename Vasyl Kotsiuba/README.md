@@ -13,21 +13,15 @@ John Gruber, the developer of Markdown, has created a Perl program for convertin
 
 `NOTE:` **Markdown files also used the .MARKDOWN extension**
 
-Shopping list:
- 
-   * apples
-   * oranges
-   * pears
- 
-Numbered list:
+ Numbered list:
 1. apples
 2. oranges
 3. pears
 
-Extra:
+ Extra:
 1. fff
 2. hhh
 
-Extra:
+ Extra:
 1. See more here [wiki](http://en.wikipedia.org/wiki/Markdown)
 2. More syntax [syntax](http://daringfireball.net/projects/markdown/syntax#link)
