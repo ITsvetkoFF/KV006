@@ -20,10 +20,9 @@ Shopping list:
    * pears
  
  Numbered list:
- 
-   1. apples
-   2. oranges
-   3. pears
+1. apples
+2. oranges
+3. pears
 
 Extra:
 	1. See more here [wiki](http://en.wikipedia.org/wiki/Markdown)
