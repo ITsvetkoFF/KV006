@@ -1,6 +1,7 @@
 #include <iostream>
-#include <list>
+#include <queue>
 #include <bitset>
+#include <time.h>
 
 using namespace std;
 
@@ -23,11 +24,19 @@ void initCell(struct cell *head, int x, int y)
 
 int BFS(int startX, int startY, int finishX, int finishY)
 {
+    if(startX == finishX && startY == finishY)
+    {
+        cout << "We are on the finish point" << endl;
+        return 0;
+    }
+
     struct cell *start = new cell;
     initCell(start, startX, startY);
     
     int steps = 0;
     int iteration = 0;
+    int x = 0, y = 0, tmpX = 0, tmpY = 0;
+
     // Mark all the vertices as not visited
     bool** visited;
     visited = new bool*[N];
@@ -39,130 +48,55 @@ int BFS(int startX, int startY, int finishX, int finishY)
     }
 
     // Create a queue for BFS
-    list<cell*> queue;
+    queue<cell *> queue;
 
     // Mark the current node as visited and enqueue it
     visited[start->x][start->y] = true;
-    queue.push_back(start);
+    queue.push(start);
+
+    // Create an array of possible moves
+    int moves[8][2] = {{2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {1, -2}, {-1, 2}, {-1, -2}};
 
     while(!queue.empty())
     {
-        // Dequeue a vertex from queue and print it
+        // Dequeue a vertex from queue
         start = queue.front();
-        queue.pop_front();
+        queue.pop();
+        //cout << "Poped new element " << endl;
         ++iteration;
-
-        // We got endpoint. Finish.
-        if((finishX == start->x) && (finishY == start->y))
-        {
-            cout << "Here is the backroute: ";
-            while(start->parent != NULL) // Print the backroute
-            {
-                cout << "(" << start->x << ", " << start->y << ") ";
-                start = start->parent;
-                ++steps;
-            }
-            cout << "(" << start->x << ", " << start->y << ") ";
-            cout << endl;
-            cout << "We made " << iteration << " iteration(s)." << endl;
-            return steps;
-        }
+        x = start->x, y = start->y;
 
         // Mark all children of current cell as visited and enqueue them.
-        if((start->x + 2) < N && (start->y + 1) < N)
+        for(int i = 0; i < 8; ++i)
         {
-            if(visited[start->x + 2][start->y + 1] != true)
+            tmpX = start->x + moves[i][0];
+            tmpY = start->y + moves[i][1];
+            if(tmpX >= 0 && tmpX < N && tmpY >= 0 && tmpY < N)
             {
-                struct cell *child = new cell;
-                child->parent = start;
-                child->x = start->x + 2;
-                child->y = start->y + 1;
-                visited[start->x + 2][start->y + 1] = true;
-                queue.push_back(child);
-            }
-        }
-        if((start->x + 2) < N && (start->y - 1) >= 0)
-        {
-            if(visited[start->x + 2][start->y - 1] != true)
-            {
-                struct cell *child = new cell;
-                child->parent = start;
-                child->x = start->x + 2;
-                child->y = start->y - 1;
-                visited[start->x + 2][start->y - 1] = true;
-                queue.push_back(child);
-            }
-        }
-        if((start->x - 2) >= 0 && (start->y + 1) < N)
-        {
-            if(visited[start->x - 2][start->y + 1] != true)
-            {
-                struct cell *child = new cell;
-                child->parent = start;
-                child->x = start->x - 2;
-                child->y = start->y + 1;
-                visited[start->x - 2][start->y + 1] = true;
-                queue.push_back(child);
-            }
-        }
-        if((start->x - 2) >= 0 && (start->y - 1) >= 0)
-        {
-            if(visited[start->x - 2][start->y - 1] != true)
-            {
-                struct cell *child = new cell;
-                child->parent = start;
-                child->x = start->x - 2;
-                child->y = start->y - 1;
-                visited[start->x - 2][start->y - 1] = true;
-                queue.push_back(child);
-            }
-        }
-        if((start->x + 1) < N && (start->y + 2) < N)
-        {
-            if(visited[start->x + 1][start->y + 2] != true)
-            {
-                struct cell *child = new cell;
-                child->parent = start;
-                child->x = start->x + 1;
-                child->y = start->y + 2;
-                visited[start->x + 1][start->y + 2] = true;
-                queue.push_back(child);
-            }
-        }
-        if((start->x + 1) < N && (start->y - 2) >= 0)
-        {
-            if(visited[start->x + 1][start->y - 2] != true)
-            {
-                struct cell *child = new cell;
-                child->parent = start;
-                child->x = start->x + 1;
-                child->y = start->y - 2;
-                visited[start->x + 1][start->y - 2] = true;
-                queue.push_back(child);
-            }
-        }
-        if((start->x - 1) >= 0 && (start->y + 2) < N)
-        {
-            if(visited[start->x - 1][start->y + 2] != true)
-            {
-                struct cell *child = new cell;
-                child->parent = start;
-                child->x = start->x - 1;
-                child->y = start->y + 2;
-                visited[start->x - 1][start->y + 2] = true;
-                queue.push_back(child);
-            }
-        }
-        if((start->x - 1) >= 0 && (start->y - 2) >= 0)
-        {
-            if(visited[start->x - 1][start->y - 2] != true)
-            {
-                struct cell *child = new cell;
-                child->parent = start;
-                child->x = start->x - 1;
-                child->y = start->y - 2;
-                visited[start->x - 1][start->y - 2] = true;
-                queue.push_back(child);
+                if(visited[tmpX][tmpY] != true)
+                {
+                    struct cell *child = new cell;
+                    child->parent = start;
+                    child->x = tmpX;
+                    child->y = tmpY;
+                    visited[tmpX][tmpY] = true;
+
+                    if((finishX == tmpX) && (finishY == tmpY))
+                    {
+                        cout << "Here is the backroute: ";
+                        while(child->parent != NULL) // Print the backroute
+                        {
+                            cout << "(" << child->x << ", " << child->y << ") ";
+                            child = child->parent;
+                            ++steps;
+                        }
+                        cout << "(" << child->x << ", " << child->y << ") ";
+                        cout << endl;
+                        cout << "We made " << iteration << " iteration(s)." << endl;
+                        return steps;
+                    }
+                    queue.push(child);
+                }
             }
         }
     }
@@ -179,7 +113,10 @@ int main()
     cout << "Set endpoint X, Y coordinates: ";
     cin >> finishX >> finishY;
 
+    float fTimeStart = clock()/(float)CLOCKS_PER_SEC;
     cout << "We have to make " << BFS(startX, startX, finishX, finishY) << " step(s)." << endl;
+    float fTimeStop = clock()/(float)CLOCKS_PER_SEC;
+    cout << "Time execution in sec: " << fTimeStop - fTimeStart << endl;
 
     return 0;
 }
