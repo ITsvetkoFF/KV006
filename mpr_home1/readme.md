@@ -1,6 +1,6 @@
-int main()
+       int main()
 
-{
+      {
     srand( time( 0 ) );
     vector<int>spisok;
     int bufsize=110000;
@@ -44,4 +44,4 @@ int main()
     cout<<g<<" is the number of same HASH"<<endl;
     cin.get();
     return 0;
-}
+      }
