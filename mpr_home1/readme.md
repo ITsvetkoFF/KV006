@@ -1,7 +1,4 @@
 
-
-using namespace std;
-
 unsigned int HashLy(const char * str)
 {
     unsigned int hash = 0;
@@ -16,17 +13,7 @@ int main()
     vector<int>spisok;
     int bufsize=110000;
     unsigned int max=UINT_MAX;
-//for(i=0;i<INT_MAX;i++
 
-
-/*int a=61;
-char b='0'+char(a);
-cout<<b<<endl;
-for(int k=49;k<75;k++)
-{
-char z='0'+char(k);
-cout<<z<<endl;
-}*/
     for(int i=0;i<bufsize;i++)
     {
         char *str = new char[ 11 ];
