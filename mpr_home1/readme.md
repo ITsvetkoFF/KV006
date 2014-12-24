@@ -1,11 +1,3 @@
-
-unsigned int HashLy(const char * str)
-{
-    unsigned int hash = 0;
-    for(; *str; str++)
-        hash = (hash * 1664525) + (unsigned char)(*str) + 1013904223;
-    return hash;
-}
 int main()
 
 {
