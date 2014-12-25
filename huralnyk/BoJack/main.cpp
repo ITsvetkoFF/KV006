@@ -4,7 +4,7 @@
 
 using namespace std;
 
-const unsigned short N = 40000;
+const unsigned short N = 10000;
 
 struct cell
 {
@@ -21,11 +21,7 @@ short BFS(const short& startX, const short& startY, const short& finishX, const 
     }
 
     // Create chessboard and mark all cells as unvisited
-    char* ChessBoard = new char [N*N];
-    for(int i = 0; i < N*N; ++i)
-    {
-        ChessBoard[i] = 0;
-    }
+    char* ChessBoard = new char [N*N]{0};
 
     // Create a queue for BFS
     queue<cell> queue;
@@ -65,10 +61,10 @@ short BFS(const short& startX, const short& startY, const short& finishX, const 
                 {
                     child.x = x;
                     child.y = y;
-                    ChessBoard[x*N + y] = i+1;
+                    ChessBoard[x*N + y] = i + 1;
 
                     // Check whether next cell is endpoint.
-                    // If yes, print backroute and count steps. Return steps
+                    // If yes, print the home road and count steps. Return steps.
                     if((finishX == x) && (finishY == y))
                     {
                         cout << "Here is the road home: ";
@@ -95,7 +91,7 @@ short BFS(const short& startX, const short& startY, const short& finishX, const 
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
     unsigned short startX = 0, startY = 0, finishX = 0, finishY = 0;
 
