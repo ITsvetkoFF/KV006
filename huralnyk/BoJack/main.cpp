@@ -1,28 +1,18 @@
 #include <iostream>
 #include <queue>
-#include <bitset>
 #include <time.h>
 
 using namespace std;
 
-const unsigned int N = 10000;
+const unsigned short N = 40000;
 
 struct cell
 {
-    int x;
-    int y;
-    cell* parent;
-
+    short x;
+    short y;
 };
 
-void initCell(struct cell *head, int x, int y)
-{
-    head->x = x;
-    head->y = y;
-    head->parent = NULL;
-}
-
-int BFS(int startX, int startY, int finishX, int finishY)
+short BFS(const short& startX, const short& startY, const short& finishX, const short& finishY)
 {
     if(startX == finishX && startY == finishY)
     {
@@ -30,82 +20,84 @@ int BFS(int startX, int startY, int finishX, int finishY)
         return 0;
     }
 
-    struct cell *start = new cell;
-    initCell(start, startX, startY);
-    
-    int steps = 0;
-    int iteration = 0;
-    int x = 0, y = 0, tmpX = 0, tmpY = 0;
-
-    // Mark all the vertices as not visited
-    bool** visited;
-    visited = new bool*[N];
-    for(int i = 0; i < N; ++i) {
-        visited[i] = new bool[N];
-        for (int j = 0; j < N; ++j) {
-            visited[i][j] = false;
-        }
+    // Create chessboard and mark all cells as unvisited
+    char* ChessBoard = new char [N*N];
+    for(int i = 0; i < N*N; ++i)
+    {
+        ChessBoard[i] = 0;
     }
 
     // Create a queue for BFS
-    queue<cell *> queue;
+    queue<cell> queue;
 
     // Mark the current node as visited and enqueue it
-    visited[start->x][start->y] = true;
+    struct cell start;
+    struct cell child;
+    start.x = startX;
+    start.y = startY;
+    ChessBoard[startX*N + startY] = 42;
     queue.push(start);
 
-    // Create an array of possible moves
-    int moves[8][2] = {{2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {1, -2}, {-1, 2}, {-1, -2}};
+    // Create variable to store amount of steps and iterations
+    short Steps = 0;
+    int Iterations = 0;
+    short x = 0, y = 0, i = 0, j = 0;
 
-    while(!queue.empty())
+    // Create an array of possible moves
+    char moves[8][2] = {{2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {1, -2}, {-1, 2}, {-1, -2}};
+
+    while(true)
     {
         // Dequeue a vertex from queue
         start = queue.front();
         queue.pop();
-        //cout << "Poped new element " << endl;
-        ++iteration;
-        x = start->x, y = start->y;
+
+        ++Iterations;
 
         // Mark all children of current cell as visited and enqueue them.
-        for(int i = 0; i < 8; ++i)
+        for(i = 0; i < 8; ++i)
         {
-            tmpX = start->x + moves[i][0];
-            tmpY = start->y + moves[i][1];
-            if(tmpX >= 0 && tmpX < N && tmpY >= 0 && tmpY < N)
+            x = start.x + moves[i][0];
+            y = start.y + moves[i][1];
+            if(x >= 0 && x < N && y >= 0 && y < N)
             {
-                if(visited[tmpX][tmpY] != true)
+                if(ChessBoard[x*N + y] == 0)
                 {
-                    struct cell *child = new cell;
-                    child->parent = start;
-                    child->x = tmpX;
-                    child->y = tmpY;
-                    visited[tmpX][tmpY] = true;
+                    child.x = x;
+                    child.y = y;
+                    ChessBoard[x*N + y] = i+1;
 
-                    if((finishX == tmpX) && (finishY == tmpY))
+                    // Check whether next cell is endpoint.
+                    // If yes, print backroute and count steps. Return steps
+                    if((finishX == x) && (finishY == y))
                     {
-                        cout << "Here is the backroute: ";
-                        while(child->parent != NULL) // Print the backroute
+                        cout << "Here is the road home: ";
+                        while(ChessBoard[x*N + y] != 42) // Print the road home
                         {
-                            cout << "(" << child->x << ", " << child->y << ") ";
-                            child = child->parent;
-                            ++steps;
+                            cout << "(" << x << ", " << y << ") ";
+                            j = ChessBoard[x*N + y] - 1;
+                            x = x - moves[j][0];
+                            y = y - moves[j][1];
+                            ++Steps;
                         }
-                        cout << "(" << child->x << ", " << child->y << ") ";
+                        cout << "(" << startX << ", " << startY << ") ";
                         cout << endl;
-                        cout << "We made " << iteration << " iteration(s)." << endl;
-                        return steps;
+                        cout << "We made " << Iterations << " iteration(s)." << endl;
+                        // Free memory
+                        delete[] ChessBoard;
+                        return Steps;
                     }
                     queue.push(child);
                 }
             }
         }
     }
-    return -1;
 }
+
 
 int main()
 {
-    unsigned int startX = 0, startY = 0, finishX = 0, finishY = 0;
+    unsigned short startX = 0, startY = 0, finishX = 0, finishY = 0;
 
     cout << "Set startpoint X, Y coordinates: ";
     cin >> startX >> startY;
@@ -114,7 +106,7 @@ int main()
     cin >> finishX >> finishY;
 
     float fTimeStart = clock()/(float)CLOCKS_PER_SEC;
-    cout << "We have to make " << BFS(startX, startX, finishX, finishY) << " step(s)." << endl;
+    cout << "We have to make " << BFS(startX, startX, finishX, finishY) << " step(s)" << endl;
     float fTimeStop = clock()/(float)CLOCKS_PER_SEC;
     cout << "Time execution in sec: " << fTimeStop - fTimeStart << endl;
 
