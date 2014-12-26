@@ -13,7 +13,7 @@ struct cell
     short y;
 };
 
-short BFS(const short& startX, const short& startY, const short& finishX, const short& finishY, const short&SIZE)
+short BFS(const short& startX, const short& startY, const short& finishX, const short& finishY, const short& SIZE)
 {
     if(startX == finishX && startY == finishY)
     {
@@ -68,18 +68,18 @@ short BFS(const short& startX, const short& startY, const short& finishX, const 
                     // If yes, print the home road and count steps. Return steps.
                     if((finishX == x) && (finishY == y))
                     {
-                        cout << "Here is the road home: ";
+                        //cout << "Here is the road home: ";
                         while(ChessBoard[x * SIZE + y] != 42) // Print the road home
                         {
-                            cout << "(" << x << ", " << y << ") ";
+                            //cout << "(" << x << ", " << y << ") ";
                             j = ChessBoard[x * SIZE + y] - 1;
                             x = x - moves[j][0];
                             y = y - moves[j][1];
                             ++Steps;
                         }
-                        cout << "(" << startX << ", " << startY << ") ";
-                        cout << endl;
-                        cout << "We made " << Iterations << " iteration(s)." << endl;
+                        //cout << "(" << startX << ", " << startY << ") ";
+                        //cout << endl;
+                        //cout << "We made " << Iterations << " iteration(s)." << endl;
                         // Free memory
                         delete[] ChessBoard;
                         return Steps;
