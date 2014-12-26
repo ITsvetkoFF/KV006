@@ -1,10 +1,11 @@
 #include <iostream>
 #include <queue>
 #include <time.h>
+#include <stdlib.h>
 
 using namespace std;
 
-const unsigned short N = 10000;
+//const unsigned short SIZE = 10000;
 
 struct cell
 {
@@ -12,7 +13,7 @@ struct cell
     short y;
 };
 
-short BFS(const short& startX, const short& startY, const short& finishX, const short& finishY)
+short BFS(const short& startX, const short& startY, const short& finishX, const short& finishY, const short&SIZE)
 {
     if(startX == finishX && startY == finishY)
     {
@@ -21,7 +22,7 @@ short BFS(const short& startX, const short& startY, const short& finishX, const 
     }
 
     // Create chessboard and mark all cells as unvisited
-    char* ChessBoard = new char [N*N]{0};
+    char* ChessBoard = new char [SIZE * SIZE]{0};
 
     // Create a queue for BFS
     queue<cell> queue;
@@ -31,7 +32,7 @@ short BFS(const short& startX, const short& startY, const short& finishX, const 
     struct cell child;
     start.x = startX;
     start.y = startY;
-    ChessBoard[startX*N + startY] = 42;
+    ChessBoard[startX * SIZE + startY] = 42;
     queue.push(start);
 
     // Create variable to store amount of steps and iterations
@@ -55,23 +56,23 @@ short BFS(const short& startX, const short& startY, const short& finishX, const 
         {
             x = start.x + moves[i][0];
             y = start.y + moves[i][1];
-            if(x >= 0 && x < N && y >= 0 && y < N)
+            if(x >= 0 && x < SIZE && y >= 0 && y < SIZE)
             {
-                if(ChessBoard[x*N + y] == 0)
+                if(ChessBoard[x * SIZE + y] == 0)
                 {
                     child.x = x;
                     child.y = y;
-                    ChessBoard[x*N + y] = i + 1;
+                    ChessBoard[x * SIZE + y] = i + 1;
 
                     // Check whether next cell is endpoint.
                     // If yes, print the home road and count steps. Return steps.
                     if((finishX == x) && (finishY == y))
                     {
                         cout << "Here is the road home: ";
-                        while(ChessBoard[x*N + y] != 42) // Print the road home
+                        while(ChessBoard[x * SIZE + y] != 42) // Print the road home
                         {
                             cout << "(" << x << ", " << y << ") ";
-                            j = ChessBoard[x*N + y] - 1;
+                            j = ChessBoard[x * SIZE + y] - 1;
                             x = x - moves[j][0];
                             y = y - moves[j][1];
                             ++Steps;
@@ -93,16 +94,16 @@ short BFS(const short& startX, const short& startY, const short& finishX, const 
 
 int main(int argc, char *argv[])
 {
-    unsigned short startX = 0, startY = 0, finishX = 0, finishY = 0;
+    /*unsigned short startX = 0, startY = 0, finishX = 0, finishY = 0;
 
     cout << "Set startpoint X, Y coordinates: ";
     cin >> startX >> startY;
 
     cout << "Set endpoint X, Y coordinates: ";
-    cin >> finishX >> finishY;
+    cin >> finishX >> finishY;*/
 
     float fTimeStart = clock()/(float)CLOCKS_PER_SEC;
-    cout << "We have to make " << BFS(startX, startX, finishX, finishY) << " step(s)" << endl;
+    cout << "We have to make " << BFS(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5])) << " step(s)" << endl;
     float fTimeStop = clock()/(float)CLOCKS_PER_SEC;
     cout << "Time execution in sec: " << fTimeStop - fTimeStart << endl;
 
