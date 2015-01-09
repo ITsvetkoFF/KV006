@@ -10,8 +10,6 @@
 
 @interface ViewController : UIViewController
 
-@property (weak, nonatomic) IBOutlet UIButton *cardButton;
-
 @property (weak, nonatomic) IBOutlet UILabel *flipsLabel;
 
 @end

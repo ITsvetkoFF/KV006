@@ -9,49 +9,110 @@
 #import "ViewController.h"
 #import "Card.h"
 #import "PlayingCardDeck.h"
+#import "CardMatchingGame.h"
+
 
 @interface ViewController ()
-@property (nonatomic) int flipCount;
-@property (nonatomic) PlayingCardDeck *deck;
+
+@property (strong, nonatomic) CardMatchingGame *game;
+@property (strong, nonatomic) IBOutletCollection(UIButton) NSArray *cardButtons;
+
+@property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
+
+@property (weak, nonatomic) IBOutlet UISegmentedControl *segmentControll;
+
 @end
 
 @implementation ViewController
 
-- (void)viewDidLoad {
-    _deck = [[PlayingCardDeck alloc] init];
-//    _cardButton setTitle:_deck forState:
-    [_cardButton setTitle:[[_deck drawRandomCard] contents] forState:UIControlStateNormal];
-    
+
+- (CardMatchingGame *)game {
+    if (!_game) {
+        _game = [[CardMatchingGame alloc] initWithCardCount:[self.cardButtons count]
+                                                  usingDeck:[self createDeck]];
+    }
+    return _game;
 }
 
-- (void)setFlipCount:(int)flipCount {
-    _flipCount = flipCount;
-    self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
-    NSLog(@"flipCountChanged to %d", self.flipCount);
+
+- (Deck *)createDeck {
+    return [[PlayingCardDeck alloc] init];
 }
+
 
 - (IBAction)touchCardButon:(UIButton*)sender {
+    NSUInteger chosenButonIndex = [self.cardButtons indexOfObject:sender];
+    if ([self.segmentControll selectedSegmentIndex] == 0)
+        [self.game choseCardAtIndexTwo:chosenButonIndex];
+    else
+        [self.game choseCardAtIndexThree:chosenButonIndex];
+    [self updateUI:sender];
+}
+
+
+- (void)updateUI:(UIButton*)sender {
+    for (UIButton *cardButton in self.cardButtons) {
+        NSUInteger cardButtonIndex = [self.cardButtons indexOfObject:cardButton];
+        Card *card = [self.game cardAtIndex:cardButtonIndex];
+        if (cardButton == sender) {
+            [UIView transitionWithView:cardButton
+                              duration:0.4
+                               options:[cardButton.currentTitle length] ? UIViewAnimationOptionTransitionFlipFromLeft :UIViewAnimationOptionTransitionFlipFromRight
+                                animations:^{
+                                    [cardButton setTitle:[self titleForCard:card]
+                                                forState:UIControlStateNormal];
+                                    [cardButton setBackgroundImage:[self backgroundImageForCard:card]
+                                                          forState:UIControlStateNormal];
+                                } // endblock
+                                completion:^(BOOL finished) {
+                                }];
+        } else {
+            [cardButton setTitle:[self titleForCard:card]
+                        forState:UIControlStateNormal];
+            [cardButton setBackgroundImage:[self backgroundImageForCard:card]
+                                  forState:UIControlStateNormal];
+        }
+        cardButton.enabled = !card.isMatched;
+        self.scoreLabel.text = [NSString stringWithFormat:@"Score: %ld", (long)self.game.score];
+    }
+}
+- (IBAction)resetButton:(UIButton *)sender {
+    [self resetGame];
+}
+- (IBAction)cardsChanged:(id)sender {
     
-    [UIView transitionWithView:sender
-                      duration:0.4
-                       options:[sender.currentTitle length] ? UIViewAnimationOptionTransitionFlipFromLeft :UIViewAnimationOptionTransitionFlipFromRight
-                    animations:^{
-                        if ([sender.currentTitle length]) {
-                            [sender setBackgroundImage:[UIImage imageNamed:@"cardback"]
-                                              forState:UIControlStateNormal];
-                            [sender setTitle:@"" forState:UIControlStateNormal];
-                        }
-                        else {
-                            [sender setBackgroundImage:[UIImage imageNamed:@"cardfront"]
-                                              forState:UIControlStateNormal];
-                            //[sender setTitle:@"A♣︎" forState:UIControlStateNormal];
-                             [sender setTitle:[[_deck drawRandomCard] contents] forState:UIControlStateNormal];
-                        }
-                    }
-                    completion:^(BOOL finished) {
-                        
-                    }];
-    self.flipCount++;
+}
+
+- (void)resetGame {
+    _game = [[CardMatchingGame alloc] initWithCardCount:[self.cardButtons count]
+                                              usingDeck:[self createDeck]];
+    for (UIButton *cardButton in self.cardButtons) {
+        NSUInteger cardButtonIndex = [self.cardButtons indexOfObject:cardButton];
+        Card *card = [self.game cardAtIndex:cardButtonIndex];
+        cardButton.enabled = YES;
+        [UIView transitionWithView:cardButton
+                          duration:0.4
+                           options:[cardButton.currentTitle length] ? UIViewAnimationOptionTransitionFlipFromLeft :UIViewAnimationOptionTransitionFlipFromRight
+                        animations:^{
+                            [cardButton setTitle:[self titleForCard:card]
+                                        forState:UIControlStateNormal];
+                            [cardButton setBackgroundImage:[self backgroundImageForCard:card]
+                                                  forState:UIControlStateNormal];
+                        } // endblock
+                        completion:^(BOOL finished) {
+                        }];
+
+    }
+    self.scoreLabel.text = [NSString stringWithFormat:@"Score: %ld", (long)self.game.score];
+}
+
+- (NSString*)titleForCard:(Card*)card {
+    return card.isChosen ? card.contents : @"";
+}
+
+
+- (UIImage*)backgroundImageForCard:(Card *)card {
+    return [UIImage imageNamed:card.isChosen ? @"cardfront" : @"cardback"];
 }
 
 @end

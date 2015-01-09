@@ -18,6 +18,7 @@
 		B36563271A5A8E5E006CD2B1 /* Deck.m in Sources */ = {isa = PBXBuildFile; fileRef = B36563261A5A8E5E006CD2B1 /* Deck.m */; };
 		B37E70EB1A5AA38200DE0D09 /* PlayingCard.m in Sources */ = {isa = PBXBuildFile; fileRef = B37E70EA1A5AA38200DE0D09 /* PlayingCard.m */; };
 		B37E70EE1A5AA72200DE0D09 /* PlayingCardDeck.m in Sources */ = {isa = PBXBuildFile; fileRef = B37E70ED1A5AA72200DE0D09 /* PlayingCardDeck.m */; };
+		B3D225721A5E5BA10062F6B6 /* CardMatchingGame.m in Sources */ = {isa = PBXBuildFile; fileRef = B3D225711A5E5BA10062F6B6 /* CardMatchingGame.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +53,8 @@
 		B37E70EA1A5AA38200DE0D09 /* PlayingCard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayingCard.m; sourceTree = "<group>"; };
 		B37E70EC1A5AA72200DE0D09 /* PlayingCardDeck.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayingCardDeck.h; sourceTree = "<group>"; };
 		B37E70ED1A5AA72200DE0D09 /* PlayingCardDeck.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayingCardDeck.m; sourceTree = "<group>"; };
+		B3D225701A5E5BA10062F6B6 /* CardMatchingGame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CardMatchingGame.h; sourceTree = "<group>"; };
+		B3D225711A5E5BA10062F6B6 /* CardMatchingGame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CardMatchingGame.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +138,8 @@
 		B37E70EF1A5AE05600DE0D09 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				B3D225701A5E5BA10062F6B6 /* CardMatchingGame.h */,
+				B3D225711A5E5BA10062F6B6 /* CardMatchingGame.m */,
 				B36563221A5A8339006CD2B1 /* Card.h */,
 				B36563231A5A8339006CD2B1 /* Card.m */,
 				B37E70E91A5AA38200DE0D09 /* PlayingCard.h */,
@@ -251,6 +256,7 @@
 				B36563271A5A8E5E006CD2B1 /* Deck.m in Sources */,
 				B36563051A5A832C006CD2B1 /* ViewController.m in Sources */,
 				B36563021A5A832C006CD2B1 /* AppDelegate.m in Sources */,
+				B3D225721A5E5BA10062F6B6 /* CardMatchingGame.m in Sources */,
 				B37E70EE1A5AA72200DE0D09 /* PlayingCardDeck.m in Sources */,
 				B36562FF1A5A832C006CD2B1 /* main.m in Sources */,
 				B36563241A5A8339006CD2B1 /* Card.m in Sources */,
@@ -329,7 +335,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -364,7 +370,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
