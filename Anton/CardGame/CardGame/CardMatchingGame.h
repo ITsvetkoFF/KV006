@@ -18,7 +18,8 @@
 - (void)choseCardAtIndexTwo:(NSUInteger)index;
 - (void)choseCardAtIndexThree:(NSUInteger)index;
 - (Card *)cardAtIndex:(NSUInteger)index;
-
+@property (nonatomic, strong) NSString *matchingString;
 @property (nonatomic, readonly) NSInteger score;
+@property (nonatomic, getter=isStarted) BOOL started;
 
 @end

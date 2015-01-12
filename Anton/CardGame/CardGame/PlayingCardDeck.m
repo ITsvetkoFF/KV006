@@ -10,7 +10,7 @@
 
 @implementation PlayingCardDeck
 
-
+static int countOfObjects = 0;
 - (instancetype)init {
     self = [super init];
     if (self) {
@@ -22,6 +22,7 @@
                 [self addCard:card];
             }
         }
+
     }
     
     return self;

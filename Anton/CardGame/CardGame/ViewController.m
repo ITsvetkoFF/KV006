@@ -16,10 +16,9 @@
 
 @property (strong, nonatomic) CardMatchingGame *game;
 @property (strong, nonatomic) IBOutletCollection(UIButton) NSArray *cardButtons;
-
 @property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
-
 @property (weak, nonatomic) IBOutlet UISegmentedControl *segmentControll;
+@property (weak, nonatomic) IBOutlet UILabel *moves;
 
 @end
 
@@ -30,6 +29,7 @@
     if (!_game) {
         _game = [[CardMatchingGame alloc] initWithCardCount:[self.cardButtons count]
                                                   usingDeck:[self createDeck]];
+        _game.started = false;
     }
     return _game;
 }
@@ -41,16 +41,23 @@
 
 
 - (IBAction)touchCardButon:(UIButton*)sender {
+
     NSUInteger chosenButonIndex = [self.cardButtons indexOfObject:sender];
     if ([self.segmentControll selectedSegmentIndex] == 0)
         [self.game choseCardAtIndexTwo:chosenButonIndex];
     else
         [self.game choseCardAtIndexThree:chosenButonIndex];
     [self updateUI:sender];
+    if (!self.game.isStarted) {
+        self.game.started = true;
+        self.segmentControll.enabled = NO;
+    }
+    
 }
 
 
 - (void)updateUI:(UIButton*)sender {
+    
     for (UIButton *cardButton in self.cardButtons) {
         NSUInteger cardButtonIndex = [self.cardButtons indexOfObject:cardButton];
         Card *card = [self.game cardAtIndex:cardButtonIndex];
@@ -74,6 +81,7 @@
         }
         cardButton.enabled = !card.isMatched;
         self.scoreLabel.text = [NSString stringWithFormat:@"Score: %ld", (long)self.game.score];
+        self.moves.text = _game.matchingString;
     }
 }
 - (IBAction)resetButton:(UIButton *)sender {
@@ -83,9 +91,15 @@
     
 }
 
+- (void)viewDidLoad {
+    
+}
+
 - (void)resetGame {
     _game = [[CardMatchingGame alloc] initWithCardCount:[self.cardButtons count]
                                               usingDeck:[self createDeck]];
+    _game.started = false;
+    self.segmentControll.enabled = YES;
     for (UIButton *cardButton in self.cardButtons) {
         NSUInteger cardButtonIndex = [self.cardButtons indexOfObject:cardButton];
         Card *card = [self.game cardAtIndex:cardButtonIndex];
