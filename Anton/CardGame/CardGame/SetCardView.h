@@ -8,6 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
-@interface SetView : UIView
+@interface SetCardView : UIView
+
+@property (strong, nonatomic) NSString *color;
+@property (strong, nonatomic) NSString *symbol;
+@property (strong, nonatomic) NSString *shading;
+@property (nonatomic) NSUInteger number;
+
+@property (nonatomic) BOOL chosen;
 
 @end
+

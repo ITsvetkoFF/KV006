@@ -6,8 +6,8 @@
 //  Copyright (c) 2015 Anton Kovernik. All rights reserved.
 //
 
-#import "ViewController.h"
+#import "CardGameViewController.h"
 
-@interface PlayingCardGameViewController : ViewController
+@interface PlayingCardGameViewController : CardGameViewController <UITabBarControllerDelegate>
 
 @end

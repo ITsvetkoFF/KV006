@@ -6,8 +6,8 @@
 //  Copyright (c) 2015 Anton Kovernik. All rights reserved.
 //
 
-#import "ViewController.h"
+#import "CardGameViewController.h"
 
-@interface SetCardGameViewController : ViewController
+@interface SetCardGameViewController : CardGameViewController
 
 @end

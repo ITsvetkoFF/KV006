@@ -52,7 +52,7 @@
 
 - (NSString *)rankAsString
 {
-    return @[@"?",@"A",@"2",@"3",@"4",@"5",@"6",@"7",@"8",@"9",@"10",@"J",@"Q",@"K"][self.rank];
+    return @[@"?", @"A", @"2", @"3", @"4", @"5", @"6",@"7", @"8", @"9", @"10", @"J", @"Q", @"K"][self.rank];
 }
 
 #pragma mark - Gesture Handling
@@ -94,8 +94,8 @@
         UIImage *faceImage = [UIImage imageNamed:[NSString stringWithFormat:@"%@%@", [self rankAsString], self.suit]];
         if (faceImage) {
             CGRect imageRect = CGRectInset(self.bounds,
-                                           self.bounds.size.width * (1.0-self.faceCardScaleFactor),
-                                           self.bounds.size.height * (1.0-self.faceCardScaleFactor));
+                                           self.bounds.size.width * (1.0 - self.faceCardScaleFactor),
+                                           self.bounds.size.height * (1.0 - self.faceCardScaleFactor));
             [faceImage drawInRect:imageRect];
         } else {
             [self drawPips];
@@ -185,18 +185,18 @@
                           upsideDown:(BOOL)upsideDown
 {
     if (upsideDown) [self pushContextAndRotateUpsideDown];
-    CGPoint middle = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
+    CGPoint middle = CGPointMake(self.bounds.size.width / 2.0, self.bounds.size.height / 2.0);
     UIFont *pipFont = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
     pipFont = [pipFont fontWithSize:[pipFont pointSize] * self.bounds.size.width * PIP_FONT_SCALE_FACTOR];
     NSAttributedString *attributedSuit = [[NSAttributedString alloc] initWithString:self.suit attributes:@{ NSFontAttributeName : pipFont }];
     CGSize pipSize = [attributedSuit size];
     CGPoint pipOrigin = CGPointMake(
-                                    middle.x-pipSize.width/2.0-hoffset*self.bounds.size.width,
-                                    middle.y-pipSize.height/2.0-voffset*self.bounds.size.height
+                                    middle.x-pipSize.width / 2.0-hoffset*self.bounds.size.width,
+                                    middle.y-pipSize.height / 2.0-voffset*self.bounds.size.height
                                     );
     [attributedSuit drawAtPoint:pipOrigin];
     if (hoffset) {
-        pipOrigin.x += hoffset*2.0*self.bounds.size.width;
+        pipOrigin.x += hoffset * 2.0 * self.bounds.size.width;
         [attributedSuit drawAtPoint:pipOrigin];
     }
     if (upsideDown) [self popContext];

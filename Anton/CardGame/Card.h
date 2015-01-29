@@ -10,11 +10,12 @@
 
 @interface Card : NSObject
 
-@property (strong) NSString *contents;
-
+@property (strong) NSAttributedString *contents;
 @property (nonatomic, getter=isChosen) BOOL chosen;
 @property (nonatomic, getter=isMatched) Boolean matched;
 
-- (int)match:(Card*)otherCards;
+@property (nonatomic) NSUInteger numberOfMatchingCards;
+
+- (int)match:(NSArray*) otherCards;
 
 @end

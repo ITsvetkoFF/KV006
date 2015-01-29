@@ -1,12 +1,9 @@
-//
-//  SetCardGameViewController.m
-//  CardGame
-//
-//  Created by Anton Kovernik on 13.01.15.
-//  Copyright (c) 2015 Anton Kovernik. All rights reserved.
-//
-
 #import "SetCardGameViewController.h"
+#import "SetCardDeck.h"
+#import "SetCard.h"
+#import "CardMatchingGame.h"
+#import "SetCardView.h"
+#import "SetCard.h"
 
 @interface SetCardGameViewController ()
 
@@ -14,24 +11,53 @@
 
 @implementation SetCardGameViewController
 
-- (void)viewDidLoad {
+- (Deck *)createDeck
+{
+    self.gameType = @"Set Cards";
+    return [[SetCardDeck alloc] init];
+}
+
+- (UIView *)createViewForCard:(Card *)card
+{
+    SetCardView *view = [[SetCardView alloc] init];
+    [self updateView:view forCard:card];
+    return view;
+}
+
+- (void)updateView:(UIView *)view forCard:(Card *)card
+{
+    if (![card isKindOfClass:[SetCard class]]) return;
+    if (![view isKindOfClass:[SetCardView class]]) return;
+    
+    SetCard *setCard = (SetCard *)card;
+    SetCardView *setCardView = (SetCardView *)view;
+    setCardView.color = setCard.color;
+    setCardView.symbol = setCard.symbol;
+    setCardView.shading = setCard.shading;
+    setCardView.number = setCard.number;
+    setCardView.chosen = setCard.chosen;
+}
+
+- (void)viewDidLoad
+{
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
+    self.numberOfStartingCards = 12;
+    self.maxCardSize = CGSizeMake(120.0, 120.0);
+    self.removeMatchingCards = YES;
+    [self updateUI];
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
+//- (void)viewWillAppear:(BOOL)animated {
+//    [super viewWillAppear:animated];
+//    self.numberOfStartingCards = 12;
+//    self.maxCardSize = CGSizeMake(120.0, 120.0);
+//    [self updateUI];
+//}
+//- (void)tabBarController:(UITabBarController *)tabBarController didSelectViewController:(UIViewController *)viewController {
+////        self.numberOfStartingCards = 35;
+////        self.maxCardSize = CGSizeMake(80.0, 120.0);
+//    self.grid.size = self.gridView.bounds.size;
+//    [self updateUI];
+//}
 
 @end

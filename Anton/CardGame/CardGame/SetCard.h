@@ -8,6 +8,28 @@
 
 #import "PlayingCard.h"
 
-@interface SetPlayingCard : PlayingCard
+typedef NS_ENUM(NSUInteger, CardShade) {
+    SolidShade = 1,
+    OpenShade = 2,
+    StripedShade = 3
+};
+
+typedef NS_ENUM(NSUInteger, CardColors) {
+    RedColor = 1,
+    GreenColor = 2,
+    PurpleColor = 3
+};
+
+@interface SetCard : Card
+
+@property (strong, nonatomic) NSString *color;
+@property (strong, nonatomic) NSString *symbol;
+@property (strong, nonatomic) NSString *shading;
+@property (nonatomic) NSUInteger number;
+
++ (NSArray *)validColors;
++ (NSArray *)validSymbols;
++ (NSArray *)validShadings;
++ (NSUInteger)maxNumber;
 
 @end

@@ -8,13 +8,27 @@
 // Abstract cllas
 
 #import <UIKit/UIKit.h>
-#import "Deck.h"
 
-@interface ViewController : UIViewController
+#import "Deck.h"
+#import "CardMatchingGame.h"
+#import "Grid.h"
+
+@interface CardGameViewController : UIViewController
 
 // protected
 // for subclasses
-- (Deck *)createDeck;          // abstract
+- (Deck *)createDeck; // abstract
+- (UIView *)createViewForCard:(Card *)card;
+- (void)updateView:(UIView *)view forCard:(Card *)card;
+- (void)updateUI;
+
+
+@property (strong, nonatomic) Grid *grid;
+@property (strong, nonatomic) NSString *gameType;
+@property (nonatomic) NSUInteger numberOfStartingCards;
+@property (nonatomic) CGSize maxCardSize;
+@property (nonatomic) BOOL removeMatchingCards;
 
 @end
+
 

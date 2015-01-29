@@ -8,18 +8,30 @@
 
 
 #import "Deck.h"
-
+#import "History.h"
 
 
 @interface CardMatchingGame : NSObject
 
-- (instancetype)initWithCardCount:(NSUInteger)count  usingDeck:(Deck *)deck;
+- (instancetype)initWithCardCount:(NSUInteger)count
+                        usingDeck:(Deck *)deck;
 
-- (void)choseCardAtIndexTwo:(NSUInteger)index;
-- (void)choseCardAtIndexThree:(NSUInteger)index;
+- (void)chooseCardAtIndex:(NSUInteger)index;
 - (Card *)cardAtIndex:(NSUInteger)index;
-@property (nonatomic, strong) NSString *matchingString;
+
+- (void)drawNewCard;
+
 @property (nonatomic, readonly) NSInteger score;
-@property (nonatomic, getter=isStarted) BOOL started;
+@property (nonatomic) NSUInteger maxMatchingCards;
+@property (nonatomic, readonly) NSArray *lastChosenCards;
+@property (nonatomic, readonly) NSInteger lastScore;
+
+@property (nonatomic, readonly) NSUInteger numberOfDealtCards;
+
+@property (nonatomic, readonly) BOOL deckIsEmpty;
+
+@property (nonatomic) int matchBonus;
+@property (nonatomic) int mismatchPenalty;
+@property (nonatomic) int flipCost;
 
 @end

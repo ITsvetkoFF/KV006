@@ -5,7 +5,7 @@
 //  Copyright (c) 2013 Stanford University.
 //  All rights reserved.
 //
-
+#import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 
 // To use Grid, simply alloc/init one, then
