@@ -8,7 +8,9 @@
 
 #import "ProfileViewController.h"
 #import "EcomapFetcher.h"
+#import "EcomapUserFetcher.h"
 #import "EcomapLoggedUser.h"
+#import "InfoActions.h"
 #import "GlobalLoggerLevel.h"
 
 @interface ProfileViewController ()
@@ -17,15 +19,15 @@
 @property (weak, nonatomic) IBOutlet UILabel *roleLabel;
 @property (weak, nonatomic) IBOutlet UILabel *emailLabel;
 
-
 @end
 
 @implementation ProfileViewController
 
+#pragma mark - view setup
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     [self prepareLabels];
-    // Do any additional setup after loading the view.
 }
 
 - (void)prepareLabels
@@ -37,26 +39,23 @@
     self.emailLabel.text = user.email ? user.email : @"";
 }
 
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
+#pragma mark - Buttons
 - (IBAction)closeButton:(id)sender {
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 - (IBAction)LogoutButton:(id)sender {
-    [EcomapFetcher logoutUser:[EcomapLoggedUser currentLoggedUser] OnCompletion:^(BOOL result, NSError *error) {
+    DDLogVerbose(@"Logout button pressed");
+    [InfoActions startActivityIndicatorWithUserInteractionEnabled:NO];
+    [EcomapUserFetcher logoutUser:[EcomapLoggedUser currentLoggedUser] OnCompletion:^(BOOL result, NSError *error) {
+        [InfoActions stopActivityIndicator];
         if (!error) {
-            if(result) DDLogVerbose(@"%d", result);
+            self.dismissBlock(YES);
+            [self dismissViewControllerAnimated:YES completion:nil];
+        } else {
+            // In case an error to logout has occured
+            [InfoActions showAlertOfError:error];
         }
     }];
-    self.dismissBlock();
-    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end

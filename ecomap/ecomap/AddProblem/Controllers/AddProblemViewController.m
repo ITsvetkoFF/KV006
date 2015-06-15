@@ -7,6 +7,14 @@
 //
 
 #import "AddProblemViewController.h"
+#import <Foundation/Foundation.h>
+#import <MobileCoreServices/MobileCoreServices.h>
+#import "EcomapFetcher+PostProblem.h"
+#import "EcomapProblem.h"
+#import "EcomapProblemDetails.h"
+#import "InfoActions.h"
+#import "EcomapLocalPhoto.h"
+#import "SlideAnimator.h"
 
 @interface AddProblemViewController () {
     CGFloat padding;
@@ -14,31 +22,31 @@
     CGFloat screenWidth;
 }
 
-//AddProblemProperties
-@property (weak, nonatomic) IBOutlet UIButton *nextButton;
-@property (weak, nonatomic) IBOutlet UIButton *prevButton;
-@property (weak, nonatomic) IBOutlet UIPageControl *pageControl;
-@property (weak, nonatomic) IBOutlet UIPickerView *problemTypesPickerVIew;
+// Outlets
 @property (weak, nonatomic) IBOutlet UIButton *addProblemButton;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *topSpaceToButton;
+@property (nonatomic) UIBarButtonItem *closeButton;
 
-@property (strong, nonatomic) UIBarButtonItem *closeButton;
-@property (nonatomic, strong) NSArray *problemTypes;
-@property (nonatomic) BOOL isNextButtonTaped;
+// NavigationViews
 
-//AddProblemViews
-@property (nonatomic, strong) UIView* addProblemNavigationView;
-@property (nonatomic, strong) UIView* addProblemLocationView;
-@property (nonatomic, strong) UIView* addProblemNameView;
-@property (nonatomic, strong) UIView* addProblemTypeView;
-@property (nonatomic, strong) UIView* addProblemDescriptionView;
-@property (nonatomic, strong) UIView* addProblemSolutionView;
-@property (nonatomic, strong) UIView* addProblemPhotoView;
-@property (nonatomic, strong) UIView* curView;
-@property (nonatomic, strong) UIView* prevView;
-@property (nonatomic, strong) UIView* nextView;
+@property (nonatomic) ConstHeightViewController* curView;
+@property (nonatomic) ConstHeightViewController* prevView;
+@property (nonatomic) ConstHeightViewController* nextView;
+@property (nonatomic) BOOL userIsInTheMiddleOfAddingProblem;
 
+// Views
 
+@property (nonatomic) AddProblemNavigationViewController *addProblemNavigation;
+@property (nonatomic) AddProblemDescriptionViewController *addProblemDescription;
+@property (nonatomic) AddProblemLocationViewController *addProblemLocation;
+@property (nonatomic) AddProblemNameViewController *addProblemName;
+@property (nonatomic) AddProblemPhotoViewController *addProblemPhoto;
+@property (nonatomic) AddProblemSolutionViewController *addProblemSolution;
+@property (nonatomic) AddProblemTypeViewController *addProblemType;
 
+// MapMarker
+
+@property (nonatomic) GMSMarker *marker;
 
 @end
 
@@ -46,246 +54,310 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.userIsInTheMiddleOfAddingProblem = false;
     [[NSNotificationCenter defaultCenter] addObserver:self  selector:@selector(orientationChanged:)
                                                  name:UIDeviceOrientationDidChangeNotification
                                                object:nil];
+    screenWidth = [UIScreen mainScreen].bounds.size.width;
+    padding = self.navigationController.navigationBar.frame.size.height + [UIApplication sharedApplication].statusBarFrame.size.height;
 }
 
-#pragma mark - PickerView
 
-- (NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
-    return _problemTypes[row];
-}
-
-// returns the number of 'columns' to display.
-- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView {
-    return 1;
-}
-
-// returns the # of rows in each component..
-- (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
-    return 7;
-}
-
-#pragma mark - PageControlViewButtons
-
-- (IBAction)nextButtonTap:(UIButton *)sender {
-    _prevButton.hidden = NO;
-    _isNextButtonTaped = YES;
-    _pageControl.currentPage = _pageControl.currentPage + 1;
+- (void)nextPage {
+    if (![self checkWetherCurrentFieldFilled]) {
+        return;
+    }
+    self.addProblemNavigation.prevButton.hidden = NO;
+    self.addProblemNavigation.pageControl.currentPage = self.addProblemNavigation.pageControl.currentPage + 1;
     
-    [self slideViewToLeft:_curView];
-    self.curView = _nextView;
-    [self slideViewFromRight:_curView];
+    [SlideAnimator slideViewToLeft:self.curView withPadding:padding];
+    self.curView = self.nextView;
+    [SlideAnimator slideViewFromRight:self.curView withPadding:padding];
     [self switchPage];
 }
 
-- (IBAction)prevButtonTap:(UIButton *)sender {
-    _nextButton.hidden = NO;
-    _isNextButtonTaped = NO;
-    _pageControl.currentPage = _pageControl.currentPage - 1;
-    [self slideViewToRight:_curView];
-    self.curView = _prevView;
-    [self slideViewFromLeft:_curView];
+- (void)prevPage {
+    self.addProblemNavigation.nextButton.hidden = NO;
+    self.addProblemNavigation.pageControl.currentPage = self.addProblemNavigation.pageControl.currentPage - 1;
+    [SlideAnimator slideViewToRight:self.curView withPadding:padding];
+    self.curView = self.prevView;
+    [SlideAnimator slideViewFromLeft:self.curView withPadding:padding];
     [self switchPage];
+}
+
+// If field filled allow switch to next page
+
+- (BOOL)checkWetherCurrentFieldFilled {
+    BOOL fieldFilled = YES;
+    NSString *alertText;
+    switch (self.addProblemNavigation.pageControl.currentPage) {
+        case 0:
+            if (!self.marker) {
+                fieldFilled = NO;
+                alertText = NSLocalizedString(@"Необхiдно обрати мiсцезнаходження проблеми", @"You have to add problem location");
+            }
+            break;
+        case 1:
+            if ([self.addProblemName.problemName.text isEqualToString:@""]) {
+                fieldFilled = NO;
+                alertText = NSLocalizedString(@"Необхiдно ввести назву проблеми", @"You have to enter the name of the problem");
+            }
+            break;
+        default:
+            break;
+    }
+    if (!fieldFilled) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"" message:alertText delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+        [alert show];
+    }
+    return fieldFilled;
+}
+
+#pragma mark - Buttons
+
+- (IBAction)addProblemButtonTap:(UIButton *)sender {
+    if([EcomapLoggedUser currentLoggedUser]) {
+        if (!self.userIsInTheMiddleOfAddingProblem) {
+            [self loadNibs];
+            [self showAddProblemView];
+            self.addProblemPhoto.rootController = self;
+            self.addProblemNavigation.nextButton.hidden = NO;
+            UIButton *button = sender;
+            button.hidden = YES;
+            CGRect buttonFrame = button.frame;
+            buttonFrame.origin.y += 50;
+            
+            self.topSpaceToButton.constant = 10;
+            
+            [button setNeedsUpdateConstraints];
+            [button setFrame:buttonFrame];
+            self.userIsInTheMiddleOfAddingProblem = true;
+            self.mapView.userInteractionEnabled = YES;
+            
+        } else {
+            
+            self.topSpaceToButton.constant = 77;
+            [self.addProblemButton setNeedsUpdateConstraints];
+            
+            [self postProblem];                     // not implemented
+            self.userIsInTheMiddleOfAddingProblem = false;
+            [self closeButtonTap:nil];
+            [sender setImage:[UIImage imageNamed:@"add"] forState:UIControlStateNormal];
+        }
+        
+    } else {
+        //show action sheet to login
+        [InfoActions showLogitActionSheetFromSender:sender
+                           actionAfterSuccseccLogin:^{
+                               [self addProblemButtonTap:sender];
+                           }];
+    }
     
 }
 
 - (void)closeButtonTap:(id *)sender {
-    _addProblemButton.enabled = YES;
-    [self slideViewToRight:_curView];
-  //  _curView = nil;
-    [self slideViewToRight:_addProblemNavigationView];
-//    _addProblemNavigationView = nil;
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceOrientationDidChangeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"LocateMeDidTap" object:nil];
+    self.marker.map = nil;
+    self.marker = nil;
+    self.topSpaceToButton.constant = 77;
+    [self.addProblemButton setNeedsUpdateConstraints];
+    self.mapView.settings.myLocationButton = YES;
+    self.addProblemButton.hidden = NO;
+    [SlideAnimator slideViewToRight:self.curView withPadding:padding];
+    [SlideAnimator slideViewToRight:self.addProblemNavigation withPadding:padding];
     self.navigationItem.rightBarButtonItem = nil;
-    _pageControl.currentPage = 0;
+    self.addProblemNavigation.pageControl.currentPage = 0;
+    self.userIsInTheMiddleOfAddingProblem = NO;
+    [self.addProblemButton setImage:[UIImage imageNamed:@"add"] forState:UIControlStateNormal];
 }
 
 - (void)switchPage{
-    switch (_pageControl.currentPage) {
+    switch (self.addProblemNavigation.pageControl.currentPage) {
         case 0:
-            _prevButton.hidden = YES;
-            _nextView = _addProblemNameView;
+            self.addProblemNavigation.prevButton.hidden = YES;
+            self.nextView = self.addProblemName;
             break;
         case 1:
-            _nextView = _addProblemTypeView;
-            _prevView = _addProblemLocationView;
+            self.nextView = self.addProblemType;
+            self.prevView = self.addProblemLocation;
+            self.addProblemButton.hidden = YES;
+            [self.addProblemButton setImage:[UIImage imageNamed:@"add"] forState:UIControlStateNormal];
             break;
         case 2:
-            _nextView = _addProblemDescriptionView;
-            _prevView = _addProblemNameView;
+            self.nextView = self.addProblemDescription;
+            self.prevView = self.addProblemName;
+            self.addProblemButton.hidden = NO;
+            [self.addProblemButton setImage:[UIImage imageNamed:@"ok"] forState:UIControlStateNormal];
+            
             break;
         case 3:
-            _nextView = _addProblemSolutionView;
-            _prevView = _addProblemTypeView;
+            self.nextView = self.addProblemSolution;
+            self.prevView = self.addProblemType;
             break;
         case 4:
-            _prevView = _addProblemDescriptionView;
-            _nextView = _addProblemPhotoView;
+            self.prevView = self.addProblemDescription;
+            self.nextView = self.addProblemPhoto;
+
             break;
         case 5:
-            _prevView = _addProblemSolutionView;
-            _nextButton.hidden = YES;
+            self.prevView = self.addProblemSolution;
+            self.addProblemNavigation.nextButton.hidden = YES;
             break;
         default:
             break;
     }
 }
 
-
-#pragma mark - AddProblemAnimation
-
-- (void)slideViewFromRight:(UIView *)view {
-    [self slideView:view from:YES right:YES];
-}
-
-- (void)slideViewFromLeft:(UIView *)view {
-    
-    [self slideView:view from:YES right:NO];
-}
-
-- (void)slideViewToRight:(UIView *)view {
-    
-    [self slideView:view from:NO right:YES];
-}
-
-- (void)slideViewToLeft:(UIView *)view {
-    [self slideView:view from:NO right:NO];
-}
-
-
-- (void)slideView:(UIView*)view from:(BOOL)from right:(BOOL)right {
-    CGFloat pad;
-    if (view == _addProblemNavigationView)
-        pad = padding;
-    else
-        pad = paddingWithNavigationView;
-    CGRect rectOne;
-    CGRect rectTwo;
-    
-    if (from) {             // slide from
-        rectOne.origin.x = right ? screenWidth*2  : -screenWidth*2 ;
-        rectTwo.origin.x = 0;
-    } else {                // slide to
-        rectOne.origin.x = 0;
-        rectTwo.origin.x = right ? screenWidth : -screenWidth ;
-    }
-    
-    rectOne.origin.y = pad;
-    rectOne.size.width = screenWidth;
-    rectOne.size.height = [self getViewHeight:view];
-    
-    rectTwo.origin.y = pad;
-    rectTwo.size.width = rectOne.size.width;
-    rectTwo.size.height = rectOne.size.height;
-    
-    [view setFrame:rectOne];
-    
-    [UIView animateWithDuration:0.5
-                     animations:^{
-                         [view setFrame:rectTwo];
-                     }
-                     completion:^(BOOL ok){
-                        if (!from)[view removeFromSuperview];
-                     }];
-}
-
 - (void)orientationChanged:(id *)sender {
-    [self setPaddings];
-    [self layoutView:_curView];
-    [self layoutView:_addProblemNavigationView];
+    screenWidth = [UIScreen mainScreen].bounds.size.width;
+    padding = self.navigationController.navigationBar.frame.size.height + [UIApplication sharedApplication].statusBarFrame.size.height;
+    
+    [self.curView layoutView:padding];
+    [self.addProblemNavigation layoutView:padding];
 }
+
+#pragma mark - SwipesGesures
+
+- (void)rightSwipe {
+    if (self.addProblemNavigation.pageControl.currentPage > 0)
+        [self prevPage];
+    
+}
+- (void)leftSwipe {
+    if (self.addProblemNavigation.pageControl.currentPage < 5)
+        [self nextPage];
+}
+
 
 - (void)showAddProblemView {
+
+    UISwipeGestureRecognizer *swipeRecognizerRight = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(rightSwipe)];
+    UISwipeGestureRecognizer *swipeRecognizerLeft = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(leftSwipe)];
     
+    swipeRecognizerRight.direction = UISwipeGestureRecognizerDirectionRight;
+    swipeRecognizerLeft.direction = UISwipeGestureRecognizerDirectionLeft;
+    
+    [self.view addGestureRecognizer:swipeRecognizerRight];
+    [self.view addGestureRecognizer:swipeRecognizerLeft];
+    
+
     // Close button SetUp
+    
+    self.mapView.settings.myLocationButton = NO;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locateMeDidTap) name:@"LocateMeDidTap" object:nil];
     self.closeButton = [[UIBarButtonItem alloc] init];
-    self.closeButton.title = @"Close";
+    self.closeButton.title = NSLocalizedString(@"Відмініти", @"Cancel bar button");
     [self.closeButton setAction:@selector(closeButtonTap:)];
     [self.closeButton setTarget:self];
     self.navigationItem.rightBarButtonItem = self.closeButton;
-    [self setPaddings];
-    [self.view addSubview:_addProblemNavigationView];
-    [self slideViewFromRight:_addProblemNavigationView];    
-    self.curView = _addProblemLocationView;
-    [self slideViewFromRight:_curView];
-    _prevView = nil;
-    _nextView = _addProblemNameView;
-    _prevButton.hidden = YES;
+    [self.view addSubview:self.addProblemNavigation.view];
+
+    [SlideAnimator slideViewFromRight:self.addProblemNavigation withPadding:padding];
+
+    self.curView = self.addProblemLocation;
+
+    [SlideAnimator slideViewFromRight:self.curView withPadding:padding];
+    
+    self.prevView = nil;
+    self.nextView = self.addProblemName;
+    self.addProblemNavigation.prevButton.hidden = YES;
+
     
 }
 
-- (IBAction)addProblemButtonTap:(id)sender {
-    [self loadNibs];
-    [self showAddProblemView];
-    _nextButton.hidden = NO;
-    UIButton *button = sender;
-    button.enabled = NO;
+#define PROBLEM_LOCATION_STRING NSLocalizedString(@"Мiсцезнаходження проблеми", @"Problem location")
+- (void)locateMeDidTap {
+    if([CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied){
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Доступ до геопозицiї", @"Location Services access")
+                                                                       message:NSLocalizedString(@"Для доступу до вашої геопозиції необхидно зайти до налаштувань та дозволити додатку доступ до вашої геопозиції", @"Please allow the application access to your location service to locate your current pisition")
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Відмініти", @"Cancel") style:UIAlertActionStyleCancel handler:nil];
+        UIAlertAction *openAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Вiдкрити налаштування", @"Open settings")
+                                                             style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+            [[UIApplication sharedApplication] openURL:url];
+        }];
+        [alert addAction:cancelAction];
+        [alert addAction:openAction];
+        [self presentViewController:alert animated:YES completion:nil];
+    }
+    else {
+        CLLocation *location = self.mapView.myLocation;
+        CLLocationCoordinate2D coordinate = [location coordinate];
+        
+        if (self.userIsInTheMiddleOfAddingProblem) {
+            if ([self.curView isKindOfClass:[AddProblemLocationViewController class]]) {
+                if (!self.marker) {
+                    self.marker = [[GMSMarker alloc] init];
+                    self.marker.title = PROBLEM_LOCATION_STRING;
+                    self.marker.map = self.mapView;
+                }
+                [self.marker setPosition:coordinate];
+                GMSCameraPosition *position = [GMSCameraPosition cameraWithTarget:location.coordinate zoom:17];
+                GMSCameraUpdate *update = [GMSCameraUpdate setCamera:position];
+                [self.mapView moveCamera:update];
+            }
+        }
+
+    }
+
 }
 
-- (void)setCurView:(UIView *)curView {
+#pragma mark - ProblemPost
+
+
+- (void)mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
+
+    if (self.userIsInTheMiddleOfAddingProblem) {
+        if ([self.curView isKindOfClass:[AddProblemLocationViewController class]]) {
+            if (!self.marker) {
+                self.marker = [[GMSMarker alloc] init];
+                self.marker.title = PROBLEM_LOCATION_STRING;
+                self.marker.map = self.mapView;
+            }
+            [self.marker setPosition:coordinate];
+        }
+    }
+}
+
+
+- (void)postProblem {
+    
+    NSDictionary *params = @{ECOMAP_PROBLEM_TITLE     : self.addProblemName.problemName.text,
+                             ECOMAP_PROBLEM_CONTENT    : self.addProblemDescription.textView.text ? self.addProblemDescription.textView.text : @"",
+                             ECOMAP_PROBLEM_PROPOSAL : self.addProblemSolution.textView.text ? self.addProblemSolution.textView.text : @"",
+                             ECOMAP_PROBLEM_LATITUDE : @(self.marker.position.latitude),
+                             ECOMAP_PROBLEM_LONGITUDE : @(self.marker.position.longitude),
+                             ECOMAP_PROBLEM_ID : @(4),
+                             ECOMAP_PROBLEM_TYPE_ID : @([self.addProblemType.pickerView selectedRowInComponent:0] + 1)
+                             };
+    
+    EcomapProblem *problem = [[EcomapProblem alloc] initWithProblem: params];
+    EcomapProblemDetails *details = [[EcomapProblemDetails alloc] initWithProblem: params];
+    details.photos = self.addProblemPhoto.photos;;
+    [EcomapFetcher problemPost:problem problemDetails:details user:[EcomapLoggedUser currentLoggedUser] OnCompletion:^(NSString *result, NSError *error) {
+        [self loadProblems];
+    }];
+}
+
+- (void)setCurView:(ConstHeightViewController *)curView {
     _curView = curView;
-    [self.view addSubview:_curView];
+    [self.view addSubview:_curView.view];
 }
-
-#pragma mark - ViewLayouts
-
-- (void)setPaddings {
-    padding = self.navigationController.navigationBar.frame.size.height +
-    [UIApplication sharedApplication].statusBarFrame.size.height;
-    screenWidth = [UIScreen mainScreen].bounds.size.width;
-    paddingWithNavigationView = padding + ADDPROBLEMNAVIGATIONVIEWHEIGHT;
-}
-
-- (void)layoutView:(UIView *)view {
-    CGFloat pad;
-    CGFloat height = [self getViewHeight:view];
-    if (view == _addProblemNavigationView)
-        pad = padding;
-    else
-        pad = paddingWithNavigationView;
-    [view setFrame:CGRectMake(0, pad, screenWidth, height)];
-}
-
-
-
 
 #pragma mark - AddProblemNibs
 
 - (void)loadNibs {
-    _addProblemNavigationView = [[NSBundle mainBundle] loadNibNamed:@"AddProblemNavigationView" owner:self options:nil][0];
-    _addProblemLocationView = [[NSBundle mainBundle] loadNibNamed:@"AddProblemLocationView" owner:self options:nil][0];
-    _addProblemNameView = [[NSBundle mainBundle] loadNibNamed:@"AddProblemNameView" owner:self options:nil][0];
-    _addProblemTypeView = [[NSBundle mainBundle] loadNibNamed:@"AddProblemTypeView" owner:self options:nil][0];
-    _addProblemDescriptionView = [[NSBundle mainBundle] loadNibNamed:@"AddProblemDescriptionView" owner:self options:nil][0];
-    _addProblemSolutionView = [[NSBundle mainBundle] loadNibNamed:@"AddProblemSolutionView" owner:self options:nil][0];
-    _addProblemPhotoView = [[NSBundle mainBundle] loadNibNamed:@"AddProblemPhotoView" owner:self options:nil][0];
-    [_problemTypesPickerVIew selectRow:4 inComponent:0 animated:NO];
-    _problemTypes = [NSArray arrayWithObjects:@"Проблеми лісів", @"Сміттєзвалища", @"Незаконна забудова",
-                     @"Проблеми водойм", @"Загрози біорізноманіттю", @"Браконьєрство", @"Інші проблеми", nil];
-    
+    self.addProblemNavigation = [[AddProblemNavigationViewController alloc] initWithNibName:@"AddProblemNavigationView" bundle:nil];
+    self.addProblemNavigation.delegate = self;
+    self.addProblemLocation = [[AddProblemLocationViewController alloc] initWithNibName:@"AddProblemLocationView" bundle:nil];
+    self.addProblemName = [[AddProblemNameViewController alloc] initWithNibName:@"AddProblemNameView" bundle:nil];
+    self.addProblemDescription = [[AddProblemDescriptionViewController alloc] initWithNibName:@"AddProblemDescriptionView" bundle:nil];
+    self.addProblemType = [[AddProblemTypeViewController alloc] initWithNibName:@"AddProblemTypeView" bundle:nil];
+    self.addProblemSolution = [[AddProblemSolutionViewController alloc] initWithNibName:@"AddProblemSolutionView" bundle:nil];
+    self.addProblemPhoto = [[AddProblemPhotoViewController alloc] initWithNibName:@"AddProblemPhotoView" bundle:nil];
+
 }
-
-- (CGFloat)getViewHeight:(UIView *)view {
-    CGFloat height = 0.0;
-    if (view == _addProblemNavigationView)
-        height = ADDPROBLEMNAVIGATIONVIEWHEIGHT;
-    else if (view == _addProblemLocationView)
-        height = ADDPROBLEMLOCATIONHEIGHT;
-    else if (view == _addProblemNameView)
-        height = ADDPROBLEMNAMEHEIGHT;
-    else if (view == _addProblemTypeView)
-        height = ADDPROBLEMTYPEHEIGHT;
-    else if (view == _addProblemDescriptionView)
-        height = ADDPROBLEMDESCRIPTIONHEIGHT;
-    else if (view == _addProblemSolutionView)
-        height = ADDPROBLEMSOLUTIONHEIGHT;
-    else if (view == _addProblemPhotoView)
-        height = ADDPROBLEMPHOTOHEIGHT;
-    return height;
-}
-
-
-
 
 @end

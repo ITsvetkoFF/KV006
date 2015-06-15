@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "LocalImageDescription.h"
+#import "EcomapLocalPhoto.h"
 
 @class PhotoViewController;
 
@@ -22,5 +22,6 @@
 @interface PhotoViewController : UIViewController
 
 @property (nonatomic, weak) id<PhotoViewControllerDelegate> delegate;
+@property (nonatomic, assign) NSUInteger maxPhotos;
 
 @end

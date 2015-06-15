@@ -9,18 +9,20 @@
 #define EcomapFetcher_Header_h
 
 //API address1 
-#define ECOMAP_ADDRESS @"http://176.36.11.25/"
+//#define ECOMAP_ADDRESS @"http://176.36.11.25/"
 //#define ECOMAP_ADDRESS @"http://localhost:8090/"
-//#define ECOMAP_ADDRESS @"http://ecomap.org/"
+#define ECOMAP_ADDRESS @"http://ecomap.org/"
 //#define ECOMAP_ADDRESS @"http://192.168.2.1:8090/"
 
 #define ECOMAP_API @"api/"
 #define ECOMAP_GET_PROBLEMS_API @"problems/"
+#define ECOMAP_GET_PROBLEM_API @"problem/"
 #define ECOMAP_GET_PROBLEM_TYPES @"problems/"
 #define ECOMAP_POST_LOGIN_API @"login/"
 #define ECOMAP_POST_TOKEN_REGISTRATION @"registerToken/"
 #define ECOMAP_GET_LOGOUT_API @"logout/"
 #define ECOMAP_POST_REGISTER_API @"register/"
+#define ECOMAP_POST_CHANGEPASSWORD_API @"changePassword/"
 #define ECOMAP_GET_LARGE_PHOTOS_ADDRESS @"photos/large/"
 #define ECOMAP_GET_SMALL_PHOTOS_ADDRESS @"photos/small/"
 #define ECOMAP_POST_PROBLEM @"problempost"
@@ -39,8 +41,12 @@
 #define ECOMAP_GET_STATS_FOR_LAST_WEEK @"getStats2/W"
 #define ECOMAP_GET_STATS_FOR_LAST_DAY @"getStats2/D"
 
+// Queries for admin's API
+
+#define ECOMAP_PUT_EDIT_PROBLEM @"editProblem/"
+#define ECOMAP_DELETING_COMMENT @"activity/"
 //Problems types descripton
-#define ECOMAP_PROBLEM_TYPES_ARRAY @[@"проблеми лісів", @"сміттєзвалища", @"незаконна забудова", @"проблеми водойм", @"загрози біорізноманіттю", @"браконьєрство", @"інші проблеми"]
+#define ECOMAP_PROBLEM_TYPES_ARRAY @[NSLocalizedString(@"Проблеми лісів", @"Forest problems"), NSLocalizedString(@"Сміттєзвалища", @"Landfills"), NSLocalizedString(@"Незаконна забудова", @"Illegal construction"), NSLocalizedString(@"Проблеми водойм", @"Ponds problems"), NSLocalizedString(@"Загрози біорізноманіттю",@"Threats to biodiversity"), NSLocalizedString(@"Браконьєрство", @"Poaching"), NSLocalizedString(@"Інші проблеми", @"Other problems")]
 
 //Paths to Ecomap problem details array
 #define ECOMAP_PROBLEM_DETAILS_DESCRIPTION 0
@@ -96,8 +102,6 @@
 #define ECOMAP_COMMENT_CONTENT_USERNAME @"userName"
 #define ECOMAP_COMMENT_CONTENT_USERSURNAME @"userSurname"
 
-
-
 // keys (paths) to values in a USER dictionary
 #define ECOMAP_USER_ID @"id"
 #define ECOMAP_USER_NAME @"name"
@@ -112,5 +116,7 @@
 #define ECOMAP_GENERAL_STATS_VOTES @"votes"
 #define ECOMAP_GENERAL_STATS_PHOTOS @"photos"
 #define ECOMAP_GENERAL_STATS_COMMENTS @"comments"
+
+#define NO_INTERNET_CODE 666
 
 #endif

@@ -7,8 +7,18 @@
 //
 
 #import "MapViewController.h"
+#import "AddProblemDescriptionViewController.h"
+#import "AddProblemLocationViewController.h"
+#import "AddProblemNameViewController.h"
+#import "AddProblemPhotoViewController.h"
+#import "AddProblemSolutionViewController.h"
+#import "AddProblemTypeViewController.h"
+#import "AddProblemNvatigationDelegate.h"
+#import "AddProblemNavigationViewController.h"
 #import "Defines.h"
 
-@interface AddProblemViewController : MapViewController <UIPickerViewDataSource, UIPickerViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIScrollViewDelegate>
+
+@interface AddProblemViewController : MapViewController <AddProblemNvatigationDelegate>
+
 
 @end

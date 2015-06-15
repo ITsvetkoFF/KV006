@@ -7,26 +7,33 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import "EcomapURLFetcher.h"
 
-// Titles for top charts
+// Titles for "Top Of The Problems" charts
 
-#define ECOMAP_MOST_VOTED_PROBLEMS_CHART_TITLE @"ТОП 10 популярних проблем"
-#define ECOMAP_MOST_SEVERE_PROBLEMS_CHART_TITLE @"ТОП 10 важливих проблем"
-#define ECOMAP_MOST_COMMENTED_PROBLEMS_CHART_TITLE @"ТОП 10 обговорюваних проблем"
+#define ECOMAP_MOST_VOTED_PROBLEMS_CHART_TITLE NSLocalizedString(@"ТОП 10 популярних проблем", @"TOP 10 popular problems")
+#define ECOMAP_MOST_SEVERE_PROBLEMS_CHART_TITLE NSLocalizedString(@"ТОП 10 важливих проблем", @"TOP 10 important problems")
+#define ECOMAP_MOST_COMMENTED_PROBLEMS_CHART_TITLE NSLocalizedString(@"ТОП 10 обговорюваних проблем", @"TOP 10 problems under discussion")
 
 typedef enum {
-    EcomapMostVotedProblemsTopList = 0,    // most voted
-    EcomapMostSevereProblemsTopList = 1,     // most severe
-    EcomapMostCommentedProblemsTopList = 2  // most commented
+    EcomapMostVotedProblemsTopList,
+    EcomapMostSevereProblemsTopList,
+    EcomapMostCommentedProblemsTopList
 } EcomapKindfOfTheProblemsTopList;
 
 @interface EcomapStatsParser : NSObject
 
-+ (NSUInteger)integerForNumberLabelForInstanceNumber:(NSUInteger)num inStatsArray:(NSArray *)generalStats;
++ (NSArray *)paticularTopChart:(EcomapKindfOfTheProblemsTopList)kindOfChart from:(NSArray *)topChart;
+
++ (NSUInteger)integerForNumberLabelForInstanceNumber:(NSUInteger)num inGeneralStatsArray:(NSArray *)generalStats;
+
 + (NSString *)stringForNameLabelForInstanceNumber:(NSUInteger)number;
-+ (NSArray *)getPaticularTopChart:(EcomapKindfOfTheProblemsTopList)kindOfChart from:(NSArray *)topChart;
-+ (NSString *)getTitleForParticularTopChart:(EcomapKindfOfTheProblemsTopList)kindOfChart fromProblem:(NSDictionary *)problem;
-+ (EcomapStatsTimePeriod)getPeriodForStatsByIndex:(NSInteger)index;
+
++ (NSString *)scoreOfProblem:(NSDictionary *)problem forChartType:(EcomapKindfOfTheProblemsTopList)kindOfChart;
+
++ (UIImage *)scoreImageOfProblem:(NSDictionary *)problem forChartType:(EcomapKindfOfTheProblemsTopList)kindOfChart;
+
++ (UIColor *)colorForProblemType:(NSUInteger)problemTypeID;
 
 @end

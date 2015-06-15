@@ -6,8 +6,11 @@
 //  Copyright (c) 2015 SoftServe. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-#import "UserActionViewController.h"
+#import "UserActivityViewController.h"
 
-@interface LoginViewController : UserActionViewController
+
+@interface LoginViewController : UserActivityViewController
+
 @end
+
+

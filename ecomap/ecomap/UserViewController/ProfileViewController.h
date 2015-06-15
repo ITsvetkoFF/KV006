@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "UserActionViewController.h"
+#import "LoginViewController.h"
+#import "UserActivityViewController.h"
 
-@interface ProfileViewController : UserActionViewController
+@interface ProfileViewController : UserActivityViewController
 
 @end

@@ -8,8 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ProblemsTopListTVC : UITableViewController
+@interface ProblemsTopListTVC : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
-@property (strong, nonatomic) NSArray *problems; // of Ecomap problem NSArray
+@property (strong, nonatomic) NSArray *charts;
 
 @end

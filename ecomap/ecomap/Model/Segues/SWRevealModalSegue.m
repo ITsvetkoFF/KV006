@@ -9,8 +9,9 @@
 #import "SWRevealModalSegue.h"
 #import "SWRevealViewController.h"
 #import "MenuViewController.h"
-#import "UserActionViewController.h"
 #import "EcomapRevealViewController.h"
+#import "UserActivityViewController.h"
+
 
 @implementation SWRevealModalSegue
 
@@ -23,18 +24,27 @@
     UINavigationController *dvc = self.destinationViewController;
     
     //Get pointer to UserActionViewController
-    UserActionViewController *userVC = (UserActionViewController *)[dvc topViewController];
+    id topViewController = [dvc topViewController];
     
-    //Get pointer to mapViewController
-    UINavigationController *mapVC = rvc.mapViewController;
+    if ([topViewController conformsToProtocol:@protocol(UserAction)]) {
+        id <UserAction> userVC = topViewController;
+        
+        //Get pointer to mapViewController
+        UINavigationController *mapVC = rvc.mapViewController;
+        
+        userVC.dismissBlock = ^(BOOL isUserActionViewControllerOnScreen){
+            if (isUserActionViewControllerOnScreen) {
+                //Show map
+                [rvc setFrontViewController:mapVC];
+                
+                //Cloce menu
+                [rvc revealToggleAnimated:NO];
+            }
+
+        };
+    }
     
-    userVC.dismissBlock = ^{
-        //Cloce menu
-        [rvc revealToggleAnimated:NO];
-        //Show map
-        [rvc setFrontViewController:mapVC];
-    };
-    
+    //Present viewController modaly
     [rvc presentViewController:dvc animated:YES completion:nil];
 }
 

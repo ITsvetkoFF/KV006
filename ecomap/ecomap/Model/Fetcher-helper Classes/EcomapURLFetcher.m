@@ -44,6 +44,12 @@
     return [self URLForAPIQuery:query];
 }
 
++ (NSURL *)URLforDeleteProblemWithID:(NSUInteger)problemID
+{
+    NSString *query = [NSString stringWithFormat:@"%@%lu", ECOMAP_GET_PROBLEM_API, (unsigned long)problemID];
+    return [self URLForAPIQuery:query];
+}
+
 + (NSURL *)URLforLogin
 {
     return [self URLForAPIQuery:ECOMAP_POST_LOGIN_API];
@@ -68,6 +74,7 @@
 + (NSString *)serverDomain
 {
     NSString *domain = [ECOMAP_ADDRESS stringByReplacingOccurrencesOfString:@"http://" withString:@""];
+    domain = [domain stringByReplacingOccurrencesOfString:@":8090" withString:@""];
     
     return [domain stringByReplacingOccurrencesOfString:@"/" withString:@""];
 }
@@ -93,6 +100,12 @@
     return [self URLForAPIQuery:ECOMAP_POST_REGISTER_API];
 }
 
++(NSURL *)URLforChangePassword
+{
+    return [self URLForAPIQuery:ECOMAP_POST_CHANGEPASSWORD_API];
+}
+
+#pragma mark -
 + (NSURL *)URLforStatsForParticularPeriod:(EcomapStatsTimePeriod)period
 {
     switch(period) {
@@ -112,6 +125,11 @@
 + (NSURL *)URLforProblemPost
 {
     return [self URLForAPIQuery:ECOMAP_POST_PROBLEM];
+}
+
++ (NSURL *)URLforPostPhoto
+{
+    return [self URLForAPIQuery:ECOMAP_POST_PHOTO];
 }
 
 + (NSURL *)URLforPostVotes
@@ -138,6 +156,21 @@
     return [NSURL URLWithString:query];
 }
 
+#pragma mark - Admin API URLs
 
-
++ (NSURL *)URLforEditingProblem:(NSUInteger)problemID
+{
+    NSString *query = [ECOMAP_PUT_EDIT_PROBLEM stringByAppendingString:[NSString stringWithFormat:@"%u", problemID]];
+    return [self URLForAPIQuery:query];
+}
++(NSURL*)URLforDeletingComment:(NSUInteger)commentID
+{
+    NSString *query = [ECOMAP_DELETING_COMMENT stringByAppendingString:[NSString stringWithFormat:@"%u",commentID]];
+    return [self URLForAPIQuery:query];
+}
++(NSURL*)URLforDeletingPhoto:(NSString*)link
+{
+    NSString *query = [ECOMAP_POST_PHOTO stringByAppendingString:link];
+                       return [self URLForAPIQuery:query];
+}
 @end

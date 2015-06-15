@@ -7,41 +7,76 @@
 //
 
 #import "ProblemsTopListTVC.h"
-#import "EcomapFetcher.h"
+#import "EcomapStatsFetcher.h"
 #import "EcomapProblemDetails.h"
 #import "EcomapURLFetcher.h"
 #import "EcomapStatsParser.h"
 #import "EcomapPathDefine.h"
 #import "EcomapRevealViewController.h"
 #import "ProblemViewController.h"
-#import "CocoaLumberjack.h"
+
+//Setup DDLog
+#import "GlobalLoggerLevel.h"
 
 @interface ProblemsTopListTVC ()
 
 @property (weak, nonatomic) IBOutlet UISegmentedControl *kindOfTopChartSegmentedControl;
+@property (strong, nonatomic) NSArray *currentChart;
 @property (nonatomic) EcomapKindfOfTheProblemsTopList kindOfTopChart;
-@property (strong, nonatomic) NSArray *charts;
-@property (strong, nonatomic) IBOutlet UITableView *topChartTableView;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *revealButtonItem;
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (strong, nonatomic) IBOutlet UIActivityIndicatorView *tableSpinner;
 
 @end
 
 @implementation ProblemsTopListTVC
 
-#pragma mark - Properties
+#pragma mark - Initialization
 
-- (NSArray *)charts
-{
-    if(!_charts) _charts = [[NSArray alloc] init];
-    return _charts;
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    // We're starting with hidden table, because we don't have data to populate it
+    self.tableView.hidden = YES;
+    
+    // Download data from Ecomap server to populate "Top Of The Problems" chart
+    [self fetchChartsOfTheTopProblems];
+    
+    // Set up kind of "Top Of The Problems" chart
+    // we want to display and draw it
+    [self changeKindOfTopChart:self.kindOfTopChartSegmentedControl];
+    
+    // Set up reveal button
+    [self customSetup];
 }
 
-- (void)setProblems:(NSArray *)problems
+- (void)viewWillAppear:(BOOL)animated
 {
-    _problems = problems;
+    [super viewWillAppear:animated];
+    
+    // Reload table view to clear all selection
     [self.tableView reloadData];
 }
 
+- (void)customSetup
+{
+    EcomapRevealViewController *revealViewController = (EcomapRevealViewController *)self.revealViewController;
+    if (revealViewController)
+    {
+        [self.revealButtonItem setTarget: self.revealViewController];
+        [self.revealButtonItem setAction: @selector(revealToggle:)];
+        [self.navigationController.navigationBar addGestureRecognizer: self.revealViewController.panGestureRecognizer];
+    }
+}
+
+#pragma mark - Properties
+
+- (void)setCurrentChart:(NSArray *)problems
+{
+    // Evety time when table data source is changed, redraw the table.
+    _currentChart = problems;
+    [self.tableView reloadData];
+}
 
 #pragma mark - User Interaction Handlers
 
@@ -62,31 +97,37 @@
             break;
     }
     
-    [self drawChart];
+    [self changeChart];
 }
 
 #pragma mark - Utility Methods
 
-- (void)drawChart
+- (void)changeChart
 {
-    NSArray *problems = [EcomapStatsParser getPaticularTopChart:self.kindOfTopChart
+    NSArray *chart = [EcomapStatsParser paticularTopChart:self.kindOfTopChart
                                                            from:self.charts];
-    self.problems = problems;
+    self.currentChart = chart;
 }
 
 #pragma mark - Fetching
 
-- (void)fetchProblems
+- (void)fetchChartsOfTheTopProblems
 {
-    [EcomapFetcher loadTopChartsOnCompletion:^(NSArray *charts, NSError *error) {
+    [self.tableSpinner startAnimating];
+    [EcomapStatsFetcher loadTopChartsOnCompletion:^(NSArray *charts, NSError *error) {
         if(!error) {
             self.charts = charts;
-            [self drawChart];
+            [self.tableSpinner stopAnimating];
+            
+            // Show the table
+            self.tableView.hidden = NO;
+            
+            [self changeChart];
         }
     }];
 }
 
-#pragma mark - UITableView Data Source
+#pragma mark - UITableView Data Source & Delegate
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
@@ -95,22 +136,38 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-    return [self.problems count];
+    return [self.currentChart count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Top Problem Cell" forIndexPath:indexPath];
+    
+    static NSString *cellIdentifier = @"Top Problem Cell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
     
     // Configure the cell...
-    NSDictionary *problem = self.problems[indexPath.row];
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@", [problem valueForKey: ECOMAP_PROBLEM_TITLE]];
-    cell.textLabel.text = [EcomapStatsParser getTitleForParticularTopChart:self.kindOfTopChart fromProblem:problem];
+    
+    if(!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier];
+    }
+    
+    // Display data in the cell
+    
+    NSDictionary *problem = self.currentChart[indexPath.row];
+    
+    UILabel *problemTitleLabel = (UILabel *)[cell viewWithTag:100];
+    problemTitleLabel.text = [NSString stringWithFormat:@"%@", [problem valueForKey: ECOMAP_PROBLEM_TITLE]];
+    
+    UILabel *problemScoreLabel = (UILabel *)[cell viewWithTag:101];
+    problemScoreLabel.text = [EcomapStatsParser scoreOfProblem:problem forChartType:self.kindOfTopChart];
+    
+    UIImageView *problemScoreImageView = (UIImageView *)[cell viewWithTag:102];
+    problemScoreImageView.image = [EcomapStatsParser scoreImageOfProblem:problem forChartType:self.kindOfTopChart];
+    
     return cell;
 }
 
 #pragma mark - Navigation
 
-// In a storyboard-based application, you will often want to do a little preparation before navigation
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     // Get the new view controller using [segue destinationViewController].
     // Pass the selected object to the new view controller.
@@ -120,29 +177,9 @@
     if ([segue.identifier isEqualToString:@"Show Problem"]) {
         if([segue.destinationViewController isKindOfClass:[ProblemViewController class]]) {
             ProblemViewController *problemVC = segue.destinationViewController;
-            NSDictionary *problem = self.problems[indexPath.row];
+            NSDictionary *problem = self.currentChart[indexPath.row];
             problemVC.problemID = [[problem valueForKey:ECOMAP_PROBLEM_ID] integerValue];
         }
-    }
-}
-
-#pragma mark - Initialization
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    [self fetchProblems];
-    [self changeKindOfTopChart:self.kindOfTopChartSegmentedControl];
-    [self customSetup];
-}
-
-- (void)customSetup
-{
-    EcomapRevealViewController *revealViewController = (EcomapRevealViewController *)self.revealViewController;
-    if ( revealViewController )
-    {
-        [self.revealButtonItem setTarget: self.revealViewController];
-        [self.revealButtonItem setAction: @selector( revealToggle: )];
-        [self.navigationController.navigationBar addGestureRecognizer: self.revealViewController.panGestureRecognizer];
     }
 }
 

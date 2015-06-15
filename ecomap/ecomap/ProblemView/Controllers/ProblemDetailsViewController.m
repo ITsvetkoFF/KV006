@@ -10,9 +10,16 @@
 #import "EcomapPhoto.h"
 #import "IDMPhotoBrowser.h"
 #import "EMThumbnailImageStore.h"
-#import "EcomapFetcher.h"
+#import "EcomapFetcher+PostProblem.h"
+#import "EcomapAdminFetcher.h"
+#import "EcomapThumbnailFetcher.h"
 #import "EcomapURLFetcher.h"
 #import "PhotoViewController.h"
+#import "EcomapLoggedUser.h"
+#import "Defines.h"
+#import "InfoActions.h"
+#import "MapViewController.h"
+#import "EditProblemViewController.h"
 
 //Setup DDLog
 #import "GlobalLoggerLevel.h"
@@ -21,10 +28,20 @@
 
 @property (weak, nonatomic) IBOutlet UITextView *descriptionText;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollViewPhotoGallary;
+@property (nonatomic, strong) NSMutableArray *buttonsOnScrollView; //of UIButtons
 
 @end
 
 @implementation ProblemDetailsViewController
+
+-(NSMutableArray *)buttonsOnScrollView
+{
+    if (!_buttonsOnScrollView) {
+        _buttonsOnScrollView = [[NSMutableArray alloc] init];
+    }
+    
+    return _buttonsOnScrollView;
+}
 
 - (void)viewWillAppear:(BOOL)animated
 {
@@ -40,11 +57,21 @@
     [self updateScrollView];
 }
 
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    if ([segue.identifier isEqualToString:@"EditProblemSegue"]) {
+        EditProblemViewController *editVC = segue.destinationViewController;
+        if ([editVC isKindOfClass:[EditProblemViewController class]]) {
+            editVC.problem = self.problemDetails;
+        }
+    }
+}
+
 - (void)updateUI
 {
     NSMutableAttributedString *text = [[NSMutableAttributedString alloc]init];
     NSAttributedString *contentHeader = [[NSAttributedString alloc]
-                                         initWithString:@"Опис проблеми:\n"
+                                         initWithString:NSLocalizedString(@"Опис проблеми:\n", @"Problem description")
                                          attributes:@{
                                                       NSFontAttributeName: [UIFont boldSystemFontOfSize:13]
                                                       }];
@@ -56,7 +83,7 @@
                                                 }];
     
     NSAttributedString *proposalHeader = [[NSAttributedString alloc]
-                                          initWithString:@"Пропозиції щодо вирішення:\n"
+                                          initWithString:NSLocalizedString(@"Пропозиції щодо вирішення:\n", @"Proposal to solve")
                                           attributes:@{
                                                        NSFontAttributeName: [UIFont boldSystemFontOfSize:13]
                                                        }];
@@ -73,6 +100,29 @@
     [text appendAttributedString:proposal];
     self.descriptionText.attributedText = text;
     [self.descriptionText setContentOffset:CGPointZero animated:YES];
+    EcomapLoggedUser *userIdent = [EcomapLoggedUser currentLoggedUser];
+    if([userIdent.role isEqualToString:@"administrator"]) {
+        self.editButton.hidden = NO;
+        self.deleteButton.hidden = NO;
+    }
+    else {
+        self.editButton.hidden = YES;
+        self.deleteButton.hidden = YES;
+    }
+}
+
+- (IBAction)editProblem:(id)sender
+{
+    
+}
+
+- (IBAction)deleteProblem:(id)sender
+{
+    [ EcomapAdminFetcher deleteProblem:self.problemDetails.problemID onCompletion:^(NSError *error) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:ALL_PROBLEMS_CHANGED object:self];
+        if(!error)
+           [self.navigationController popViewControllerAnimated:YES]; 
+    }];
 }
 
 #pragma mark - Scroll View Gallery setup
@@ -80,9 +130,13 @@
 #define VERTICAL_OFFSET 10.0f
 #define BUTTON_HEIGHT 80.0f
 #define BUTTON_WIDTH 80.0f
+#define DELETE_BUTTON_SIZE 20.0f
 
 - (void)updateScrollView
 {
+    for (UIButton *button in self.buttonsOnScrollView){
+        [button removeFromSuperview];
+    }
     //Set ScrollView Initial offset
     CGFloat contentOffSet = 0;
     
@@ -130,16 +184,19 @@
         //Set background color
         //customButton.backgroundColor = [UIColor clearColor];
         //Set image
-        [customButton setBackgroundImage:[UIImage imageNamed:@"addButtonImage.png"]
-                                forState:UIControlStateNormal];
+
+            [customButton setBackgroundImage:[UIImage imageNamed:@"addButtonImage.png"]
+                                    forState:UIControlStateNormal];
+
+            
+    
         //Add target-action
         [customButton addTarget:self
                          action:@selector(buttonToAddImagePressed:)
                forControlEvents:UIControlEventTouchUpInside];
-        DDLogVerbose(@"'Add image' button created");
+        
+        
     } else {
-        //Set background color
-        //customButton.backgroundColor = [UIColor blackColor];
         
         //Set image. First look in cache
         UIImage *thumnailImage = [[EMThumbnailImageStore sharedStore] imageForKey:link];
@@ -155,7 +212,7 @@
             [activityIndicator startAnimating];
             
             //Set image in background
-            [EcomapFetcher loadSmallImagesFromLink:link
+            [EcomapThumbnailFetcher loadSmallImagesFromLink:link
                                       OnCompletion:^(UIImage *image, NSError *error) {
                                           if (!error) {
                                               [customButton setBackgroundImage:image
@@ -164,7 +221,7 @@
                                               DDLogError(@"Error loadind image at URL: %@", [error localizedDescription]);
                                               
                                               //set image "no preview avaliable"
-                                              [customButton setBackgroundImage:[UIImage imageNamed:@"NoPreviewButton.png"]
+                                              [customButton setBackgroundImage:[UIImage imageNamed:NSLocalizedString(@"NoPreviewButtonUKR.png", @"NoPreviewButton image")]
                                                                       forState:UIControlStateNormal];
                                           }
                                           
@@ -181,29 +238,90 @@
         [customButton addTarget:self
                          action:@selector(buttonWithImageOnScreenPressed:)
                forControlEvents:UIControlEventTouchUpInside];
-        DDLogVerbose(@"Button with photo number %lu created", (unsigned long)tag);
+        
+        
+        if([[EcomapLoggedUser currentLoggedUser].role isEqualToString:@"administrator"]) {
+            //add delete phtoto button for admin
+            UIButton *deletePhotoButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [deletePhotoButton setBackgroundImage:[UIImage imageNamed:@"DeleteImageButton"] forState:UIControlStateNormal];
+            CGRect frame;
+            frame.size.width = DELETE_BUTTON_SIZE;
+            frame.size.height = DELETE_BUTTON_SIZE;
+            frame.origin.x = customButton.bounds.size.width - DELETE_BUTTON_SIZE;
+            frame.origin.y = customButton.bounds.origin.y;
+            deletePhotoButton.frame = frame;
+            deletePhotoButton.tag = tag;
+            //Add target-action
+            [deletePhotoButton addTarget:self
+                             action:@selector(buttonToDeleteImagePressed:)
+                   forControlEvents:UIControlEventTouchUpInside];
+            
+            [customButton addSubview:deletePhotoButton];
+        }
+
     }
     
-    
-    
     [self.scrollViewPhotoGallary addSubview:customButton];
+    [self.buttonsOnScrollView addObject:customButton];
 }
 
-- (void)buttonToAddImagePressed:(id)sender
+- (void)buttonToDeleteImagePressed:(UIButton *)sender
 {
-    DDLogVerbose(@"'Add image' button pressed");
-//    PhotoViewController *photoController = [[PhotoViewController alloc] init];
-//    photoController.delegate = self;
-//    [self presentViewController:photoController animated:YES completion:nil];
-    [self performSegueWithIdentifier:@"PhotoPicker" sender:sender];
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Увага!", nil)
+                                                                             message:NSLocalizedString(@"Дану дію неможливо відмінити", @"This action can not be undone")
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Відміна", @"Cancel button title on alert")
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+    UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Видалити", @"Delete button title on alert")
+                                                           style:UIAlertActionStyleDestructive
+                                                         handler:^(UIAlertAction *action) {
+                                                             //Get photo link to detele
+                                                             NSMutableArray *photosDitailsArray = [self.problemDetails.photos mutableCopy];
+                                                             EcomapPhoto *photoDitails = photosDitailsArray[sender.tag - 1];
+                                                             NSString *photoLink = photoDitails.link;
+                                                             
+                                                             //delete photo pfom server
+                                                             [EcomapAdminFetcher deletePhotoWithLink:photoLink
+                                                                                        onCompletion:^(NSError *error) {
+                                                                                            if (!error) {
+                                                                                                //Delete photo fromscroll view UI
+                                                                                                [photosDitailsArray removeObjectAtIndex:(sender.tag - 1)];
+                                                                                                self.problemDetails.photos = photosDitailsArray;
+                                                                                                [self updateScrollView];
+                                                                                                
+                                                                                                [InfoActions showPopupWithMesssage:NSLocalizedString(@"Фото видалене", @"Photo deleted")];
+                                                                                            } else {
+                                                                                                [InfoActions showAlertOfError:error];
+                                                                                            }
+                                                                                        }];
+                                                             
+                                                         }];
+    [alertController addAction:cancelAction];
+    [alertController addAction:deleteAction];
+
+    //Present Alert
+    [self presentViewController:alertController animated:YES completion:nil];
+    
 }
 
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+- (void)buttonToAddImagePressed:(UIButton *)sender
 {
-    if ([segue.identifier isEqual:@"PhotoPicker"]) {
-        PhotoViewController *vc = segue.destinationViewController;
-        vc.delegate = self;
-        [self presentViewController:vc animated:YES completion:nil];
+    DDLogVerbose(@"Add image buton pressed");
+    if([EcomapLoggedUser currentLoggedUser]) {
+        
+            PhotoViewController *vc = [self.storyboard instantiateViewControllerWithIdentifier:@"PhotoViewController"];
+            vc.delegate = self;
+            [self presentViewController:vc animated:YES completion:nil];
+        
+        
+    } else {
+        //show action sheet to login
+        [InfoActions showLogitActionSheetFromSender:sender
+                           actionAfterSuccseccLogin:^{
+                               [self buttonToAddImagePressed:sender];
+                           }];
     }
 }
 
@@ -216,6 +334,17 @@
                withImageDescriptions:(NSArray *)imageDescriptions
 {
     [self dismissViewControllerAnimated:YES completion:nil];
+    [InfoActions startActivityIndicatorWithUserInteractionEnabled:YES];
+    [EcomapFetcher addPhotos:imageDescriptions
+                   toProblem:self.problemDetails.problemID
+                        user:[EcomapLoggedUser currentLoggedUser]
+                OnCompletion:^(NSString *result, NSError *error) {
+                    [InfoActions stopActivityIndicator];
+                    if(error)
+                        [InfoActions showAlertOfError:error];
+                    else
+                        [[NSNotificationCenter defaultCenter] postNotificationName:PROBLEMS_DETAILS_CHANGED object:self];
+                }];
 }
 
 - (void)buttonWithImageOnScreenPressed:(id)sender

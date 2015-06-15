@@ -10,22 +10,24 @@
 #import "CommentCell.h"
 #import "EcomapFetcher.h"
 #import "ContainerViewController.h"
-#import "EcomapComments.h"
-#import "EcomapCommentsChild.h"
+#import "EcomapActivity.h"
+#import "EcomapCommentaries.h"
 #import "EcomapLoggedUser.h"
 #import "EcomapProblemDetails.h"
 #import "Defines.h"
+#import "EcomapUserFetcher.h"
 #import "GlobalLoggerLevel.h"
+#import "EcomapUserFetcher.h"
+#import "EcomapAdminFetcher.h"
+#import "InfoActions.h"
 
 
-@interface AddCommViewController () <UITableViewDelegate,UITableViewDataSource>
+
+@interface AddCommViewController () <UITableViewDelegate,UITableViewDataSource,UITextViewDelegate>
 @property (nonatomic,strong) NSMutableArray* comments;
 @property (nonatomic,strong) EcomapProblemDetails * ecoComment;
 @property (nonatomic,strong) NSString *problemma;
-
-
-
-//@property (nonatomic,strong) EcomapCommentsChild *uploadComment;
+@property (weak, nonatomic) IBOutlet UIButton *addCommentButton;
 
 @end
 
@@ -33,33 +35,43 @@
 
 
 
--(void)setEcoComment:(EcomapProblemDetails *)ecoComment
+- (void)didReceiveMemoryWarning
 {
-    
+[super didReceiveMemoryWarning];
 }
+
+
 - (void)viewDidLoad {
     
-    [EcomapFetcher loginWithEmail:@"clic@ukr.net"
-                      andPassword:@"eco"
-                     OnCompletion:^(EcomapLoggedUser *user, NSError *error) {
-                         if (!error) {
-                             DDLogVerbose(@"User role: %@", user.role);
-                             
-                             //Read current logged user
-                             
-                             
-                             
-                         } else {
-                             DDLogVerbose(@"Error to login: %@", error);
-                         }
-                     }]; 
-
+    //[EcomapUserFetcher loginWithEmail:@"admin@.com" andPassword:@"admin" OnCompletion:^(EcomapLoggedUser *loggedUser, NSError *error) {
+        
+    //}];
     [super viewDidLoad];
+    self.addCommentButton.enabled = NO;
+    
+    
+    [self updateUI];
+    
+    //Buttons images localozation
+    UIImage *addButtonImage = [UIImage imageNamed:NSLocalizedString(@"AddCommentButtonUKR", @"Add comment button image")];
+    [self.addCommentButton setImage:addButtonImage
+                           forState:UIControlStateNormal];
+   
+    // Do any additional setup after loading the view.
+}
+
+-(void)updateUI
+{   self.myTableView.allowsMultipleSelectionDuringEditing = NO;
     self.myTableView.delegate = self;
     self.myTableView.dataSource = self;
-   
+    self.myTableView.estimatedRowHeight = 54.0;
+    self.myTableView.rowHeight = UITableViewAutomaticDimension;
+    self.textField.delegate = self;
+    self.textField.text = @"Add comment";
+    self.textField.textColor = [UIColor lightGrayColor];
+    //[self.myTableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    self.myTableView.tableFooterView =[[UIView alloc] initWithFrame:CGRectZero];
     
-    // Do any additional setup after loading the view.
 }
 
 
@@ -67,111 +79,201 @@
 -(void)setProblemDetails:(EcomapProblemDetails *)problemDetails
 {
     NSMutableArray *comments = [NSMutableArray array];
-    
-    for(EcomapComments *oneComment in problemDetails.comments )
+     for(EcomapActivity *oneComment in problemDetails.comments )
     {
         if(oneComment.activityTypes_Id ==5)
         {
             [comments addObject:oneComment];
             NSLog(@"(%@, %@ %lu)",oneComment.userName,oneComment.userSurname,(unsigned long)oneComment.usersID);
-           
+            
         }
         self.problemma = [NSString stringWithFormat:@"%lu",(unsigned long)oneComment.problemsID];
     }
-    self.comments = comments;
-    DDLogVerbose(@"%lu",(unsigned long)self.comments.count);
-    [self.myTableView reloadData];
+        self.comments = comments;
+        DDLogVerbose(@"%lu",(unsigned long)self.comments.count);
+        [self.myTableView reloadData];
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
+
 
 
 - (IBAction)pressAddComment:(id)sender  {
-  
-    NSString * fromTextField = self.textField.text;
-  EcomapLoggedUser *userIdent = [EcomapLoggedUser currentLoggedUser];
- NSString * userID = [NSString stringWithFormat:@"%lu",(unsigned long)userIdent.userID];
     
-    NSString *probId = self.problemma;
-    if(userIdent)
-    {
-    [EcomapFetcher createComment:userID andName:userIdent.name andSurname:userIdent.surname andContent:fromTextField andProblemId:probId OnCompletion:^(EcomapCommentsChild *obj, NSError *error) {
-   
-        if(error)
-            DDLogVerbose(@"Trouble");
-        else
-            [[NSNotificationCenter defaultCenter] postNotificationName:PROBLEMS_DETAILS_CHANGED object:self];
+        NSString * fromTextField = self.textField.text;
+        EcomapLoggedUser *userIdent = [EcomapLoggedUser currentLoggedUser];
+        NSString * userID = [NSString stringWithFormat:@"%lu",(unsigned long)userIdent.userID];
+    
+    if(userIdent) {
+        
+            
+            [EcomapFetcher createComment:userID
+                                 andName:userIdent.name
+                              andSurname:userIdent.surname
+                              andContent:fromTextField
+                            andProblemId:self.problemma OnCompletion:^(EcomapCommentaries *obj, NSError *error)
+             {
+                 
+                 if(error)
+                     DDLogError(@"Error adding comment:%@", [error localizedDescription]);
+                 else
+                     [[NSNotificationCenter defaultCenter] postNotificationName:PROBLEMS_DETAILS_CHANGED object:self];
+                 
+                 [InfoActions showPopupWithMesssage:NSLocalizedString(@"Коментар додано", @"Comment added")];
+                 
+             }];
+            
+        }
 
-    }];
-    
-    NSDictionary *dict = @{@"Content":fromTextField, @"ActivityTypes_Id":@5,@"userName":userIdent.name,@"userSurname":userIdent.surname};
-   EcomapCommentsChild *comment = [[EcomapCommentsChild alloc] initWithInfo:dict];
-    comment.problemContent = fromTextField;
-    comment.userName = userIdent.name;
-    comment.userSurname = userIdent.surname;
-    NSUInteger counter = self.comments.count;
-    
-    NSDate *today = [NSDate date];
-    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-    [dateFormat setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-    comment.date = today;
-    [self.comments insertObject:comment atIndex:counter];
-     NSLog(@"%@",self.comments.lastObject);
-   [self.myTableView reloadData];
-    
-   
-      }
-    else
-        NSLog(@"USER IS NOT REGISTERED");
-       
-    
-    if ([self.textField isFirstResponder]) {
-        self.textField.text = @"";
+     else {
+        //show action sheet to login
+        [InfoActions showLogitActionSheetFromSender:sender
+                           actionAfterSuccseccLogin:^{
+                               [self pressAddComment:sender];
+                           }];
+        return;
     }
 
+    if ([self.textField isFirstResponder]) {
+        self.textField.text = @"";
+        [self textViewDidEndEditing:self.textField];
+    }
+    
 }
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+#pragma  -mark Placeholder
 
-    // Return the number of sections.
-    return 1;
+-(void)textViewDidBeginEditing:(UITextView *)textView
+{
+    if([self.textField.text isEqualToString:@"Add comment"])
+    {
+        self.textField.text = @"";
+        self.textField.textColor = [UIColor blackColor];
+       // self.addCommentButton.enabled = YES;
+    }
+    [self.textField becomeFirstResponder];
+    
 }
+
+-(void)textViewDidEndEditing:(UITextView *)textView
+{
+    if([self.textField.text isEqualToString:@""])
+    {
+        self.textField.text = @"Add comment";
+        self.textField.textColor = [UIColor lightGrayColor];
+        self.addCommentButton.enabled = NO;
+    }
+    
+    [self.textField resignFirstResponder];
+ 
+
+}
+-(void)textViewDidChange:(UITextView *)textView
+{
+    self.addCommentButton.enabled = YES;
+}
+
+
+#pragma mark - Table View
+
+
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    // Return the number of rows in the section.
-   // DDLogVerbose(@"%d",self.comments.count);
-    return self.comments.count;
+    if(self.comments.count == 0)
+         return 1;
+    else    return self.comments.count;
+ 
 }
 
 
- - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-     
-  CommentCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CommentCell" forIndexPath:indexPath];
-     if(!cell)
-         cell = [[CommentCell alloc] init];
-     EcomapComments *commentZ = [self.comments objectAtIndex:indexPath.row];
-   //  NSInteger row=[indexPath row]
-    cell.commentContent.text= commentZ.problemContent;
-     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-     [formatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-     NSString *personalInfo = [NSString stringWithFormat:@"%@ %@ %@",commentZ.userName, commentZ.userSurname,[formatter stringFromDate:commentZ.date]];
-      cell.personInfo.text = personalInfo;
-     
- 
- return cell;
- }
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+
+    if(self.comments.count == 0)
+    {
+        UITableViewCell *cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+        
+        cell.textLabel.text = @"Коментарі відсутні";
+        
+        return cell;
+    }
+    else
+    {EcomapCommentaries *commentair = [self.comments objectAtIndex:indexPath.row];
+        CommentCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CommentCell" forIndexPath:indexPath];
+        
+        
+        cell.commentContent.text= commentair.problemContent;
+        NSDateFormatter *formatter = [NSDateFormatter new];    // Date Fornatter things
+        formatter.dateStyle = NSDateFormatterMediumStyle;      //
+        formatter.timeStyle = NSDateFormatterShortStyle;       //
+        formatter.doesRelativeDateFormatting = YES;            //
+        NSLocale *ukraineLocale = [[NSLocale alloc]initWithLocaleIdentifier:@"uk"];
+        [formatter setLocale:ukraineLocale];                   //
+        
+        NSString *personalInfo = [NSString stringWithFormat:@"%@ %@",commentair.userName, commentair.userSurname];
+        NSString *dateInfo = [NSString stringWithFormat:@" %@",[formatter stringFromDate:commentair.date]];
+        cell.personInfo.text = personalInfo;
+        cell.dateInfo.text = dateInfo;
+        [cell setNeedsUpdateConstraints];
+        [cell updateConstraintsIfNeeded];
+        return cell;
+    }
+    
+   
+}
 
 
-/*
- // Override to support conditional editing of the table view.
- - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
- // Return NO if you do not want the specified item to be editable.
- return YES;
- }
- */
+
+// Override to support conditional editing of the table view.
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    EcomapLoggedUser *userIdent = [EcomapLoggedUser currentLoggedUser];
+    if([userIdent.role isEqualToString:@"administrator"] && self.comments.count >0)
+        return YES;
+    else
+        return NO;
+}
+
+
+-(void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+          if(editingStyle == UITableViewCellEditingStyleDelete)
+    {
+         EcomapActivity *commentaries = [self.comments objectAtIndex:indexPath.row];
+        NSUInteger number = commentaries.commentID;
+        [ EcomapAdminFetcher deleteComment:number onCompletion:^(NSError *error) {
+            if(!error)
+            [[NSNotificationCenter defaultCenter] postNotificationName:PROBLEMS_DETAILS_CHANGED object:self];
+        }];
+        
+    }
+    
+    
+}
+
+
+
+/*-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSString *reuseIdentifier = @"CommentCell";
+    CommentCell *cell = [self.offscreenCells objectForKey:reuseIdentifier];
+    if(!cell)
+    {
+        cell = [[CommentCell alloc]init];
+        [self.offscreenCells setObject:cell forKey:reuseIdentifier];
+    }
+    [cell setNeedsUpdateConstraints];
+    [cell updateConstraintsIfNeeded];
+    cell.bounds = CGRectMake(0, 0, CGRectGetWidth(tableView.bounds), CGRectGetHeight(cell.bounds));
+    [cell setNeedsLayout];
+    [cell layoutIfNeeded];
+    CGFloat height = [cell.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize].height;
+    height+=1;
+    return height;
+}
+
+*/
+
+
+
 
 /*
  // Override to support editing the table view.
